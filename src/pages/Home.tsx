@@ -97,23 +97,23 @@ export function Home({
       )}
 
       {isFromCache && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-          <span className="text-sm text-blue-800">📶 {t.offline || 'Using offline data'}</span>
+        <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center gap-2">
+          <span className="text-sm text-indigo-800">📶 {t.offline || 'Using offline data'}</span>
         </div>
       )}
 
       {shouldShowErrorRecovery && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-lg">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               {isPermissionError ? (
                 <>
-                  <h3 className="font-semibold text-red-900 mb-1">🔒 Permission Denied</h3>
-                  <p className="text-sm text-red-800 mb-3">
+                  <h3 className="font-semibold text-rose-900 mb-1">🔒 Permission Denied</h3>
+                  <p className="text-sm text-rose-800 mb-3">
                     Firestore is checking access permissions. This usually resolves in 5-10 minutes after you published the Security Rules.
                   </p>
-                  <div className="space-y-2 text-sm text-red-700">
+                  <div className="space-y-2 text-sm text-rose-700">
                     <p>What to try:</p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>Wait a few minutes and try again</li>
@@ -124,14 +124,14 @@ export function Home({
                 </>
               ) : (
                 <>
-                  <h3 className="font-semibold text-red-900 mb-1">⚠️ Cannot Load Budgets</h3>
-                  <p className="text-sm text-red-800 mb-3">{error.message}</p>
+                  <h3 className="font-semibold text-rose-900 mb-1">⚠️ Cannot Load Budgets</h3>
+                  <p className="text-sm text-rose-800 mb-3">{error.message}</p>
                 </>
               )}
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={handleRetry}
-                  className="flex items-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-800 text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 text-sm font-medium rounded-lg transition-colors"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Retry Now
@@ -158,7 +158,7 @@ export function Home({
       {loading && budgets.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <div className="text-center">
-            <div className="w-12 h-12 rounded-full border-2 border-gray-200 border-t-blue-600 animate-spin mx-auto mb-4"></div>
+            <div className="w-12 h-12 rounded-full border-2 border-gray-200 border-t-indigo-600 animate-spin mx-auto mb-4"></div>
             <p className="text-gray-500">{t.loadingBudgets || 'Loading budgets...'}</p>
           </div>
         </div>
@@ -192,7 +192,7 @@ export function Home({
                           setSortBy('name');
                           setShowSortMenu(false);
                         }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'name' ? 'text-blue-600 font-semibold' : 'text-gray-900'}`}
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'name' ? 'text-indigo-600 font-semibold' : 'text-gray-900'}`}
                       >
                         {t.sortByName}
                       </button>
@@ -201,7 +201,7 @@ export function Home({
                           setSortBy('amount');
                           setShowSortMenu(false);
                         }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'amount' ? 'text-blue-600 font-semibold' : 'text-gray-900'}`}
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'amount' ? 'text-indigo-600 font-semibold' : 'text-gray-900'}`}
                       >
                         {t.sortByAmount}
                       </button>
@@ -210,7 +210,7 @@ export function Home({
                           setSortBy('urgency');
                           setShowSortMenu(false);
                         }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'urgency' ? 'text-blue-600 font-semibold' : 'text-gray-900'}`}
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'urgency' ? 'text-indigo-600 font-semibold' : 'text-gray-900'}`}
                       >
                         {t.sortByUrgency}
                       </button>
@@ -220,14 +220,14 @@ export function Home({
                 <div className="flex bg-gray-100 p-1 rounded-lg">
                   <button
                     onClick={() => onViewModeChange('detailed')}
-                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'detailed' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'detailed' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
                     title={t.detailedView}
                   >
                     <LayoutGrid className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onViewModeChange('compact')}
-                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'compact' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'compact' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
                     title={t.compactView}
                   >
                     <LayoutList className="w-4 h-4" />
@@ -252,8 +252,8 @@ export function Home({
         <div className="text-center py-16 px-4">
           {error && isPermissionError && hasNoCachedData ? (
             <>
-              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-red-500" />
+              <div className="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-rose-500" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">⏳ Waiting for Firestore</h2>
               <p className="text-gray-500 mb-4">
@@ -265,7 +265,7 @@ export function Home({
               <div className="flex flex-col gap-3 max-w-xs mx-auto">
                 <button 
                   onClick={handleRetry}
-                  className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Try Again
@@ -283,15 +283,15 @@ export function Home({
             </>
           ) : (
             <>
-              <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Plus className="w-8 h-8 text-blue-500" />
+              <div className="bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Plus className="w-8 h-8 text-indigo-500" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">{t.welcome}</h2>
               <p className="text-gray-500 mb-8">{t.createFirstBudget}</p>
               <div className="flex flex-col gap-3 max-w-xs mx-auto">
                 <button
                   onClick={onAddBudgetClick}
-                  className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                  className="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
                 >
                   {t.createBudget}
                 </button>
@@ -310,7 +310,7 @@ export function Home({
       {budgets.length > 0 && (
         <button
           onClick={onAddBudgetClick}
-          className="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all z-40"
+          className="fixed bottom-24 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all z-40"
         >
           <Plus className="w-6 h-6" />
         </button>

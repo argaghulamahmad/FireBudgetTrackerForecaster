@@ -45,13 +45,13 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode =
             <div className="flex gap-1 ml-2">
               <button
                 onClick={() => onEdit(budget)}
-                className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+                className="p-1.5 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-full transition-colors"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => onDelete(budget.id)}
-                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                className="p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -62,7 +62,7 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode =
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              metrics.percentage > 90 ? 'bg-red-500' : metrics.percentage > 75 ? 'bg-orange-500' : 'bg-blue-500'
+              metrics.percentage > 90 ? 'bg-rose-500' : metrics.percentage > 75 ? 'bg-amber-500' : 'bg-indigo-500'
             )}
             style={{ width: `${Math.min(metrics.percentage, 100)}%` }}
           />
@@ -83,20 +83,20 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode =
         <div className="flex gap-1">
           <button
             onClick={() => onEdit(budget)}
-            className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+            className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-full transition-colors"
           >
             <Pencil className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDelete(budget.id)}
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+            className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="flex items-center gap-1 text-xs text-blue-600 font-medium mb-4 bg-blue-50 w-fit px-2 py-1 rounded-md">
+      <div className="flex items-center gap-1 text-xs text-indigo-600 font-medium mb-4 bg-indigo-50 w-fit px-2 py-1 rounded-md">
         <Clock className="w-3 h-3" />
         {metrics.remainingDays} {budget.excludeWeekends ? t.workdaysRemaining : t.daysRemaining} {t[metrics.periodName as TranslationKeys] || metrics.periodName}
       </div>
@@ -133,7 +133,7 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode =
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
-            metrics.percentage > 90 ? 'bg-red-500' : metrics.percentage > 75 ? 'bg-orange-500' : 'bg-blue-500'
+            metrics.percentage > 90 ? 'bg-rose-500' : metrics.percentage > 75 ? 'bg-amber-500' : 'bg-indigo-500'
           )}
           style={{ width: `${Math.min(metrics.percentage, 100)}%` }}
         />

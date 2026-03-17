@@ -105,14 +105,14 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
               placeholder="e.g. Groceries"
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t.totalAmount}</label>
-            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all overflow-hidden">
+            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all overflow-hidden">
               <span className="pl-4 pr-1 text-gray-500">{getCurrencySymbol(currency)}</span>
               <input 
                 type="text" 
@@ -144,7 +144,7 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
               id="excludeWeekends"
               checked={excludeWeekends}
               onChange={(e) => setExcludeWeekends(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500 cursor-pointer"
             />
             <label htmlFor="excludeWeekends" className="text-sm font-medium text-gray-700 cursor-pointer">{t.excludeWeekends}</label>
           </div>
@@ -152,7 +152,7 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
           <button 
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 bg-blue-600 text-white font-semibold rounded-xl mt-6 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-4 bg-indigo-600 text-white font-semibold rounded-xl mt-6 hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

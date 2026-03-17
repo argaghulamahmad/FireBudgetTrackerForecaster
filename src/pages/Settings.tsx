@@ -118,7 +118,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
                   className="w-16 h-16 rounded-full object-cover shadow-md"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
                   {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
                 </div>
               )}
@@ -164,13 +164,13 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <button 
               onClick={() => onLanguageChange('en')}
-              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${language === 'en' ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
+              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${language === 'en' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
             >
               {t.english}
             </button>
             <button 
               onClick={() => onLanguageChange('id')}
-              className={`w-full px-4 py-4 text-left transition-colors ${language === 'id' ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
+              className={`w-full px-4 py-4 text-left transition-colors ${language === 'id' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
             >
               {t.indonesian}
             </button>
@@ -185,13 +185,13 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <button 
               onClick={() => onCurrencyChange('USD')}
-              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${currency === 'USD' ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
+              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${currency === 'USD' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
             >
               USD ($)
             </button>
             <button 
               onClick={() => onCurrencyChange('IDR')}
-              className={`w-full px-4 py-4 text-left transition-colors ${currency === 'IDR' ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
+              className={`w-full px-4 py-4 text-left transition-colors ${currency === 'IDR' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
             >
               IDR (Rp)
             </button>
@@ -206,13 +206,13 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <button 
               onClick={() => onViewModeChange('detailed')}
-              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${viewMode === 'detailed' ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
+              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${viewMode === 'detailed' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
             >
               {t.detailedView}
             </button>
             <button 
               onClick={() => onViewModeChange('compact')}
-              className={`w-full px-4 py-4 text-left transition-colors ${viewMode === 'compact' ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
+              className={`w-full px-4 py-4 text-left transition-colors ${viewMode === 'compact' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
             >
               {t.compactView}
             </button>
@@ -250,7 +250,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
               onClick={() => setIsLoadSampleModalOpen(true)}
               className="w-full px-4 py-4 text-left flex items-center gap-3 border-b border-gray-50 hover:bg-gray-50 text-gray-700 transition-colors"
             >
-              <Download className="w-4 h-4 text-blue-500" />
+              <Download className="w-4 h-4 text-indigo-500" />
               {t.loadSampleData}
             </button>
             <button 

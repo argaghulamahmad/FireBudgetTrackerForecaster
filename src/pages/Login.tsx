@@ -37,11 +37,11 @@ export function Login({ t }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-600 flex items-center justify-center px-4">
       {/* Animated background shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        <div className="absolute top-20 right-20 w-72 h-72 bg-violet-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-violet-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
       </div>
 
       {/* Login Card */}
@@ -50,7 +50,7 @@ export function Login({ t }: LoginProps) {
           {/* Header */}
           <div className="text-center mb-12">
             {/* Logo */}
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-6 shadow-lg">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl mb-6 shadow-lg">
               <Wallet className="w-8 h-8 text-white" />
             </div>
 
@@ -73,7 +73,7 @@ export function Login({ t }: LoginProps) {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full bg-white border-2 border-gray-200 hover:border-blue-500 text-gray-900 py-3.5 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:bg-blue-50 group"
+            className="w-full bg-white border-2 border-gray-200 hover:border-indigo-500 text-gray-900 py-3.5 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:bg-indigo-50 group"
           >
             {/* Google Icon */}
             <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@ export function Login({ t }: LoginProps) {
 
             {isLoading ? (
               <>
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                 {t.signingIn || 'Signing in...'}
               </>
             ) : (
@@ -100,15 +100,15 @@ export function Login({ t }: LoginProps) {
             </h3>
             <div className="space-y-2 text-sm text-gray-600">
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                <div className="w-2 h-2 bg-indigo-600 rounded-full" />
                 <span>{t.budgets || 'Manage budgets'}</span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                <div className="w-2 h-2 bg-indigo-600 rounded-full" />
                 <span>{t.dataManagement || 'Backup & restore data'}</span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                <div className="w-2 h-2 bg-indigo-600 rounded-full" />
                 <span>{t.manageSpending || 'Track spending'}</span>
               </div>
             </div>

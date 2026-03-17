@@ -35,8 +35,8 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-4 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="bg-blue-50 p-1.5 rounded-lg">
-              <Activity className="w-4 h-4 text-blue-600" />
+            <div className="bg-indigo-50 p-1.5 rounded-lg">
+              <Activity className="w-4 h-4 text-indigo-600" />
             </div>
             <h2 className="text-sm font-semibold text-gray-900">{t.totalHealth}</h2>
           </div>
@@ -48,7 +48,7 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
         <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
           <div 
             className={`h-full rounded-full transition-all duration-500 ${
-              percentage > 90 ? 'bg-red-500' : percentage > 75 ? 'bg-orange-500' : 'bg-blue-500'
+              percentage > 90 ? 'bg-rose-500' : percentage > 75 ? 'bg-amber-500' : 'bg-indigo-500'
             }`}
             style={{ width: `${Math.min(percentage, 100)}%` }}
           />
@@ -60,8 +60,8 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
   return (
     <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6">
       <div className="flex items-center gap-2 mb-4">
-        <div className="bg-blue-50 p-2 rounded-full">
-          <Activity className="w-5 h-5 text-blue-600" />
+        <div className="bg-indigo-50 p-2 rounded-full">
+          <Activity className="w-5 h-5 text-indigo-600" />
         </div>
         <h2 className="text-lg font-semibold text-gray-900">{t.totalHealth}</h2>
       </div>
@@ -71,12 +71,12 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
         <p className="text-4xl font-bold text-gray-900">{formatCurrency(totalRemaining, currency)}</p>
       </div>
 
-      <div className="mb-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+      <div className="mb-6 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
         <div className="flex items-center gap-2 mb-1">
-          <CalendarDays className="w-5 h-5 text-blue-600" />
-          <p className="text-sm font-medium text-blue-800">{t.dailyAllowance}</p>
+          <CalendarDays className="w-5 h-5 text-indigo-600" />
+          <p className="text-sm font-medium text-indigo-800">{t.dailyAllowance}</p>
         </div>
-        <p className="text-2xl font-bold text-blue-700">{formatCurrency(totalDailyAllowance, currency)}</p>
+        <p className="text-2xl font-bold text-indigo-700">{formatCurrency(totalDailyAllowance, currency)}</p>
       </div>
 
       <div className="space-y-2">
@@ -87,7 +87,7 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
         <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
           <div 
             className={`h-full rounded-full transition-all duration-500 ${
-              percentage > 90 ? 'bg-red-500' : percentage > 75 ? 'bg-orange-500' : 'bg-blue-500'
+              percentage > 90 ? 'bg-rose-500' : percentage > 75 ? 'bg-amber-500' : 'bg-indigo-500'
             }`}
             style={{ width: `${Math.min(percentage, 100)}%` }}
           />

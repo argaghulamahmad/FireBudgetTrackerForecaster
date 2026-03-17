@@ -62,7 +62,7 @@ export function ConfirmModal({
             onClick={handleConfirm}
             disabled={isLoading}
             className={`flex-1 py-3 px-4 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-              isDestructive ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
+              isDestructive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-indigo-600 hover:bg-indigo-700'
             }`}
           >
             {isLoading && (

@@ -16,7 +16,7 @@ export function BottomNav({ activeTab, onChange, t }: BottomNavProps) {
           onClick={() => onChange('home')}
           className={cn(
             "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors",
-            activeTab === 'home' ? "text-blue-600" : "text-gray-500 hover:text-gray-900"
+            activeTab === 'home' ? "text-indigo-600" : "text-gray-500 hover:text-gray-900"
           )}
         >
           <Home className="w-6 h-6" />
@@ -26,7 +26,7 @@ export function BottomNav({ activeTab, onChange, t }: BottomNavProps) {
           onClick={() => onChange('settings')}
           className={cn(
             "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors",
-            activeTab === 'settings' ? "text-blue-600" : "text-gray-500 hover:text-gray-900"
+            activeTab === 'settings' ? "text-indigo-600" : "text-gray-500 hover:text-gray-900"
           )}
         >
           <Settings className="w-6 h-6" />
