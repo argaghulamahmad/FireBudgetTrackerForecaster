@@ -81,3 +81,15 @@ export function getTimeMetrics(frequency: 'Weekly' | 'Monthly' | 'Yearly', exclu
 
   return { elapsed, total, remainingDays, percentage, periodName };
 }
+
+export function getDailyAllowance(amount: number, frequency: 'Weekly' | 'Monthly' | 'Yearly', excludeWeekends?: boolean): number {
+  const metrics = getTimeMetrics(frequency, excludeWeekends);
+  const idealSpent = (amount * metrics.percentage) / 100;
+  const remaining = amount - idealSpent;
+  return metrics.remainingDays > 0 ? remaining / metrics.remainingDays : remaining;
+}
+
+export function getMaxSpendToday(amount: number, frequency: 'Weekly' | 'Monthly' | 'Yearly', excludeWeekends?: boolean): number {
+  const dailyAllowance = getDailyAllowance(amount, frequency, excludeWeekends);
+  return Math.max(0, dailyAllowance);
+}

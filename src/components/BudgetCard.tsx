@@ -2,7 +2,7 @@ import { Budget } from '../types';
 import { Trash2, Clock, Pencil, CalendarDays } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { Currency, formatCurrency } from '../utils/currency';
-import { getTimeMetrics } from '../utils/time';
+import { getTimeMetrics, getMaxSpendToday } from '../utils/time';
 
 interface BudgetCardProps {
   budget: Budget;
@@ -18,6 +18,7 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
   const idealSpent = (budget.amount * metrics.percentage) / 100;
   const remaining = budget.amount - idealSpent;
   const dailyAllowance = metrics.remainingDays > 0 ? remaining / metrics.remainingDays : remaining;
+  const maxSpendToday = getMaxSpendToday(budget.amount, budget.frequency, budget.excludeWeekends);
 
   const getFrequencyLabel = (freq: string) => {
     if (freq === 'Weekly') return t.weekly;
@@ -98,12 +99,21 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
         {metrics.remainingDays} {budget.excludeWeekends ? t.workdaysRemaining : t.daysRemaining} {t[metrics.periodName] || metrics.periodName}
       </div>
 
-      <div className="mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-        <div className="flex items-center gap-2 mb-1">
-          <CalendarDays className="w-4 h-4 text-indigo-500" />
-          <p className="text-xs font-medium text-gray-500">{t.dailyAllowance}</p>
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="flex items-center gap-2 mb-1">
+            <CalendarDays className="w-4 h-4 text-indigo-500" />
+            <p className="text-xs font-medium text-gray-500">{t.dailyAllowance}</p>
+          </div>
+          <p className="text-lg font-bold text-indigo-700">{formatCurrency(dailyAllowance, currency)}</p>
         </div>
-        <p className="text-lg font-bold text-indigo-700">{formatCurrency(dailyAllowance, currency)}</p>
+        <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+          <div className="flex items-center gap-2 mb-1">
+            <Clock className="w-4 h-4 text-amber-600" />
+            <p className="text-xs font-medium text-amber-700">{t.maxToSpendToday}</p>
+          </div>
+          <p className="text-lg font-bold text-amber-600">{formatCurrency(maxSpendToday, currency)}</p>
+        </div>
       </div>
 
       <div className="flex justify-between items-end mb-2">
