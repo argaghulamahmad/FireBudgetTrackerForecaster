@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, LayoutList, LayoutGrid, ChevronDown, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, LayoutList, LayoutGrid, ChevronDown, AlertCircle, RefreshCw } from 'lucide-react';
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -42,6 +42,23 @@ export function Home({
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [dismissedError, setDismissedError] = useState(false);
+
+  // Auto-clear dismiss flag when error changes
+  useEffect(() => {
+    setDismissedError(false);
+  }, [error]);
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    // Trigger a page reload to retry the connection
+    window.location.reload();
+  };
+
+  const isPermissionError = error?.message?.includes('Permission');
+  const hasNoCachedData = budgets.length === 0 && !loading;
+  const shouldShowErrorRecovery = error && !dismissedError && (isPermissionError || hasNoCachedData);
 
   const getSortedBudgets = (budgetsToSort: Budget[]) => {
     const sorted = [...budgetsToSort];
@@ -100,10 +117,56 @@ export function Home({
         </div>
       )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-600" />
-          <span className="text-sm text-red-800">{error.message}</span>
+      {shouldShowErrorRecovery && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              {isPermissionError ? (
+                <>
+                  <h3 className="font-semibold text-red-900 mb-1">🔒 Permission Denied</h3>
+                  <p className="text-sm text-red-800 mb-3">
+                    Firestore is checking access permissions. This usually resolves in 5-10 minutes after you published the Security Rules.
+                  </p>
+                  <div className="space-y-2 text-sm text-red-700">
+                    <p>What to try:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Wait a few minutes and try again</li>
+                      <li>Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)</li>
+                      <li>Check console (F12) for more details</li>
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-red-900 mb-1">⚠️ Cannot Load Budgets</h3>
+                  <p className="text-sm text-red-800 mb-3">{error.message}</p>
+                </>
+              )}
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={handleRetry}
+                  className="flex items-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-800 text-sm font-medium rounded-lg transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Retry Now
+                </button>
+                <button
+                  onClick={() => setDismissedError(true)}
+                  className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && !shouldShowErrorRecovery && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-amber-600" />
+          <span className="text-sm text-amber-800">{error.message}</span>
         </div>
       )}
 
@@ -202,25 +265,60 @@ export function Home({
         </>
       ) : (
         <div className="text-center py-16 px-4">
-          <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Plus className="w-8 h-8 text-blue-500" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">{t.welcome}</h2>
-          <p className="text-gray-500 mb-8">{t.createFirstBudget}</p>
-          <div className="flex flex-col gap-3 max-w-xs mx-auto">
-            <button 
-              onClick={onAddBudgetClick}
-              className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              {t.createBudget}
-            </button>
-            <button 
-              onClick={onLoadSampleData}
-              className="w-full px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              {t.loadSampleData}
-            </button>
-          </div>
+          {error && isPermissionError && hasNoCachedData ? (
+            <>
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-red-500" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">⏳ Waiting for Firestore</h2>
+              <p className="text-gray-500 mb-4">
+                The database is setting up access permissions. This usually takes 5-10 minutes.
+              </p>
+              <p className="text-sm text-gray-500 mb-8">
+                In the meantime, you can:
+              </p>
+              <div className="flex flex-col gap-3 max-w-xs mx-auto">
+                <button 
+                  onClick={handleRetry}
+                  className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Try Again
+                </button>
+                <button 
+                  onClick={onLoadSampleData}
+                  className="w-full px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                  Load Sample Budgets
+                </button>
+                <p className="text-xs text-gray-400 mt-2">
+                  Once permissions are granted, your data will automatically sync.
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Plus className="w-8 h-8 text-blue-500" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">{t.welcome}</h2>
+              <p className="text-gray-500 mb-8">{t.createFirstBudget}</p>
+              <div className="flex flex-col gap-3 max-w-xs mx-auto">
+                <button 
+                  onClick={onAddBudgetClick}
+                  className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  {t.createBudget}
+                </button>
+                <button 
+                  onClick={onLoadSampleData}
+                  className="w-full px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                  {t.loadSampleData}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
