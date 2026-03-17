@@ -123,6 +123,14 @@ export function subscribeTobudgets(
   onNext: BudgetListener,
   onError?: (error: Error) => void
 ): Unsubscribe {
+  if (!userId) {
+    console.error('subscribeTobudgets: userId is required');
+    if (onError) {
+      onError(new Error('userId is required to subscribe to budgets'));
+    }
+    return () => {};
+  }
+
   try {
     const constraints: QueryConstraint[] = [
       where('userId', '==', userId),

@@ -113,16 +113,17 @@ export function useFirestoreLiveData(
     let mounted = true;
     console.warn(`📏 Setting up Firestore listener for user ${userId}...`);
 
-    // Re-subscribe with metadata tracking and userId filter
-    const q = query(
-      collection(db, 'budgets'),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
-
     let unsubscribe = () => {};
 
     try {
+      // Safely build query constraints to avoid null values in where clauses
+      const constraints = [
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+      ];
+
+      const q = query(collection(db, 'budgets'), ...constraints);
+
       unsubscribe = onSnapshot(
         q,
         (snapshot) => {
@@ -153,7 +154,7 @@ export function useFirestoreLiveData(
         (err) => {
           if (mounted) {
             console.error('❌ Firestore listener error:', err);
-            
+
             // Handle specific errors
             if (err.code === 'permission-denied') {
               const message = `🔒 Permission Denied Error

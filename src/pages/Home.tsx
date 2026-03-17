@@ -23,25 +23,26 @@ interface HomeProps {
   onLoadSampleData: () => void;
 }
 
-export function Home({ 
-  budgets, 
-  loading, 
-  error, 
-  hasPendingWrites, 
+export function Home({
+  budgets,
+  loading,
+  error,
+  hasPendingWrites,
   isFromCache,
-  currency, 
-  t, 
-  viewMode, 
-  onViewModeChange, 
-  onAddBudgetClick, 
-  onEditBudget, 
-  onDeleteBudget, 
-  onLoadSampleData 
+  currency,
+  t,
+  viewMode,
+  onViewModeChange,
+  onAddBudgetClick,
+  onEditBudget,
+  onDeleteBudget,
+  onLoadSampleData
 }: HomeProps) {
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [dismissedError, setDismissedError] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Auto-clear dismiss flag when error changes
   useEffect(() => {
