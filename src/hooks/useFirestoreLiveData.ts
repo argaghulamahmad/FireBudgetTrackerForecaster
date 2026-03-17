@@ -22,7 +22,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Budget } from '../types';
 import { subscribeTobudgets } from '../db/firestore-db';
 import { initializeOfflinePersistence } from '../db/firebase';
-import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
+import { onSnapshot, collection, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../db/firebase';
 
 /**
@@ -40,12 +40,13 @@ export interface UseFirestoreLiveDataReturn {
 /**
  * useFirestoreLiveData Hook
  * 
+ * @param userId Current user's Firebase UID (required for data isolation)
  * @param initialize If true, calls initializeOfflinePersistence() on first load
  * @returns Object with data, loading, error, and metadata states
  * 
  * USAGE:
  * ```
- * const { data: budgets, loading, error, hasPendingWrites } = useFirestoreLiveData();
+ * const { data: budgets, loading, error, hasPendingWrites } = useFirestoreLiveData(user.uid);
  * 
  * if (loading) return <LoadingSpinner />;
  * if (error) return <ErrorMessage error={error} />;
@@ -59,6 +60,7 @@ export interface UseFirestoreLiveDataReturn {
  * ```
  */
 export function useFirestoreLiveData(
+  userId: string | null,
   initialize: boolean = true
 ): UseFirestoreLiveDataReturn {
   const [data, setData] = useState<Budget[]>([]);
@@ -101,37 +103,25 @@ export function useFirestoreLiveData(
 
   // Subscribe to real-time updates
   useEffect(() => {
+    // Don't subscribe if userId is not available
+    if (!userId) {
+      setData([]);
+      setLoading(false);
+      console.warn('No userId provided, skipping budget subscription');
+      return;
+    }
+
     let mounted = true;
-    console.log('📡 Setting up Firestore listener...');
+    console.log(`📡 Setting up Firestore listener for user ${userId}...`);
 
-    // Custom callback to capture metadata
-    let unsubscribe = subscribeTobudgets(
-      (budgets) => {
-        if (mounted) {
-          setData(budgets);
-          setLoading(false);
-          setError(null);
-        }
-      },
-      (err) => {
-        if (mounted) {
-          console.error('❌ Firestore listener error:', err);
-          setError(err);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Wrap in a way to capture metadata
-    // This requires accessing the snapshot directly
-    // We'll re-subscribe with a more detailed listener
-    unsubscribe?.();
-
-    // Re-subscribe with metadata tracking
+    // Re-subscribe with metadata tracking and userId filter
     const q = query(
       collection(db, 'budgets'),
+      where('userId', '==', userId),
       orderBy('createdAt', 'desc')
     );
+
+    let unsubscribe = () => {};
 
     try {
       unsubscribe = onSnapshot(
@@ -205,7 +195,7 @@ export function useFirestoreLiveData(
       unsubscribe?.();
       console.log('📡 Firestore listener cleaned up');
     };
-  }, []);
+  }, [userId]);
 
   // Refetch callback - re-initialize listener
   const refetch = useCallback(async () => {

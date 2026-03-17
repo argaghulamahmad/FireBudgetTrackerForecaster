@@ -35,7 +35,7 @@ export default function App() {
     deleteBudget, 
     loadSampleData, 
     clearAllData 
-  } = useBudgets();
+  } = useBudgets(user?.uid || null);
 
   // ==================== UI State ====================
   const [activeTab, setActiveTab] = useState<'home' | 'settings'>('home');
@@ -185,7 +185,7 @@ export default function App() {
           setIsAddBudgetOpen(false);
           setBudgetToEdit(null);
         }} 
-        onAdd={addBudget} 
+        onAdd={(budget) => addBudget({ ...budget, userId: user?.uid || '' })} 
         onEdit={updateBudget}
         initialData={budgetToEdit}
       />

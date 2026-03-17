@@ -53,6 +53,8 @@ export interface UseBudgetsReturn {
 /**
  * useBudgets Hook
  * 
+ * @param userId Current user's Firebase UID (required for data isolation)
+ * 
  * USAGE:
  * ```
  * const {
@@ -62,13 +64,14 @@ export interface UseBudgetsReturn {
  *   addBudget,
  *   updateBudget,
  *   deleteBudget,
- * } = useBudgets();
+ * } = useBudgets(user.uid);
  * 
  * // Handle loading state
  * if (loading) return <LoadingSpinner />;
  * 
  * // Add a budget (returns new ID)
  * const newId = await addBudget({
+ *   userId: user.uid,
  *   name: 'Coffee',
  *   amount: 50,
  *   frequency: 'Weekly',
@@ -99,7 +102,7 @@ export interface UseBudgetsReturn {
  * - UI shows "Syncing..." badge if hasPendingWrites=true
  * - Changes auto-sync when network reconnects
  */
-export function useBudgets(): UseBudgetsReturn {
+export function useBudgets(userId: string | null): UseBudgetsReturn {
   const {
     data: budgets,
     loading,
@@ -107,7 +110,7 @@ export function useBudgets(): UseBudgetsReturn {
     hasPendingWrites,
     isFromCache,
     refetch,
-  } = useFirestoreLiveData(true);
+  } = useFirestoreLiveData(userId, true);
 
   return {
     // Data
@@ -151,7 +154,8 @@ export function useBudgets(): UseBudgetsReturn {
 
     clearAllData: async () => {
       try {
-        await clearAllBudgets();
+        if (!userId) throw new Error('User ID is required');
+        await clearAllBudgets(userId);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         console.error('Failed to clear all data:', error);
@@ -161,10 +165,11 @@ export function useBudgets(): UseBudgetsReturn {
 
     loadSampleData: async (currency) => {
       try {
+        if (!userId) throw new Error('User ID is required');
         // First clear existing data
-        await clearAllBudgets();
+        await clearAllBudgets(userId);
         // Then load sample data
-        await loadSampleBudgets(currency);
+        await loadSampleBudgets(userId, currency);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         console.error('Failed to load sample data:', error);

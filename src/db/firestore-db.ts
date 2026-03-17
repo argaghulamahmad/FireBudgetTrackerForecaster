@@ -19,6 +19,7 @@ import {
   deleteDoc,
   updateDoc,
   query,
+  where,
   orderBy,
   onSnapshot,
   getDocs,
@@ -47,6 +48,7 @@ const BUDGETS_COLLECTION = 'budgets';
  * Note: Firestore auto-generates document IDs
  */
 export interface FirestoreBudget {
+  userId: string; // Firebase Auth UID for data isolation
   name: string;
   amount: number;
   frequency: 'Weekly' | 'Monthly' | 'Yearly';
@@ -69,12 +71,14 @@ export type BudgetListener = (budgets: Budget[], error?: Error) => void;
  * 
  * Use Case: Initial page load, or when you don't need real-time updates
  * 
+ * @param userId Current user's UID (from Firebase Auth)
  * @returns Array of budgets sorted by creation date (newest first)
  * @throws FirebaseError if query fails
  */
-export async function getAllBudgets(): Promise<Budget[]> {
+export async function getAllBudgets(userId: string): Promise<Budget[]> {
   try {
     const constraints: QueryConstraint[] = [
+      where('userId', '==', userId),
       orderBy('createdAt', 'desc'),
     ];
     const q = query(
@@ -86,6 +90,7 @@ export async function getAllBudgets(): Promise<Budget[]> {
     return snapshot.docs.map((doc) => ({
       ...convertFirestoreToBudget(doc.data() as FirestoreBudget),
       id: doc.id,
+      userId,
     }));
   } catch (error) {
     console.error('Error fetching budgets:', error);
@@ -99,6 +104,7 @@ export async function getAllBudgets(): Promise<Budget[]> {
  * Use Case: Keep UI synchronized with Firestore (primary use case)
  * 
  * Features:
+ * - Filters by userId to show only user's budgets
  * - Offline queueing: Local changes queue until reconnect
  * - hasPendingWrites: Indicates if changes are awaiting server confirmation
  * - Automatic reconnection on network recovery
@@ -107,16 +113,19 @@ export async function getAllBudgets(): Promise<Budget[]> {
  * If Security Rules don't allow reading, the error callback fires
  * Gracefully handle by showing cached data or error message
  * 
+ * @param userId Current user's UID (from Firebase Auth)
  * @param onNext Callback with updated budgets
  * @param onError Callback for errors (Security Rules, network, etc.)
  * @returns Unsubscribe function to stop listening
  */
 export function subscribeTobudgets(
+  userId: string,
   onNext: BudgetListener,
   onError?: (error: Error) => void
 ): Unsubscribe {
   try {
     const constraints: QueryConstraint[] = [
+      where('userId', '==', userId),
       orderBy('createdAt', 'desc'),
     ];
     const q = query(
@@ -132,6 +141,7 @@ export function subscribeTobudgets(
         const budgets = snapshot.docs.map((doc) => ({
           ...convertFirestoreToBudget(doc.data() as FirestoreBudget),
           id: doc.id,
+          userId,
         }));
 
         // Metadata: Distinguish between local changes and server data
@@ -180,9 +190,10 @@ export function subscribeTobudgets(
  * Firestore Behavior:
  * - Auto-generates document ID
  * - Sets createdAt to server timestamp
+ * - Includes userId for security and data isolation
  * - Offline: Queues write locally, syncs on reconnect
  * 
- * @param budget Budget data without id and createdAt
+ * @param budget Budget data without id and createdAt, but must include userId
  * @returns Promise with new document ID
  * @throws FirebaseError if write fails
  */
@@ -190,7 +201,7 @@ export async function addBudget(
   budget: Omit<Budget, 'id' | 'createdAt'>
 ): Promise<string> {
   try {
-    // Add with server timestamp
+    // Add with server timestamp and userId
     const docRef = await addDoc(
       collection(db, BUDGETS_COLLECTION),
       {
@@ -257,17 +268,21 @@ export async function deleteBudget(id: string): Promise<void> {
  */
 
 /**
- * Clear All Budgets
+ * Clear All Budgets for Current User
  * 
  * Uses WriteBatch for atomic multi-document delete
- * Note: Cannot delete all docs atomically; must fetch first
+ * Filters by userId to only delete user's own budgets
  * 
+ * @param userId Current user's UID
  * @throws FirebaseError if batch fails
  */
-export async function clearAllBudgets(): Promise<void> {
+export async function clearAllBudgets(userId: string): Promise<void> {
   try {
-    // Fetch all docs first
-    const q = query(collection(db, BUDGETS_COLLECTION));
+    // Fetch all docs for current user only
+    const q = query(
+      collection(db, BUDGETS_COLLECTION),
+      where('userId', '==', userId)
+    );
     const snapshot = await getDocs(q);
 
     // Delete in batch (Firestore limit: 500 per batch)
@@ -285,14 +300,17 @@ export async function clearAllBudgets(): Promise<void> {
 }
 
 /**
- * Load Sample Data
+ * Load Sample Data for Current User
  * 
  * Uses WriteBatch for atomicity
+ * Includes userId to associate sample budgets with current user
  * 
+ * @param userId Current user's UID
  * @param currency 'USD' | 'IDR'
  * @throws FirebaseError if batch fails
  */
 export async function loadSampleBudgets(
+  userId: string,
   currency: 'USD' | 'IDR'
 ): Promise<void> {
   try {
@@ -302,6 +320,7 @@ export async function loadSampleBudgets(
       currency === 'USD'
         ? [
             {
+              userId,
               name: 'Coffee',
               amount: 50,
               frequency: 'Weekly' as const,
@@ -310,6 +329,7 @@ export async function loadSampleBudgets(
               createdAt: serverTimestamp(),
             },
             {
+              userId,
               name: 'Groceries',
               amount: 400,
               frequency: 'Monthly' as const,
@@ -318,6 +338,7 @@ export async function loadSampleBudgets(
               createdAt: serverTimestamp(),
             },
             {
+              userId,
               name: 'Rent',
               amount: 1200,
               frequency: 'Monthly' as const,
@@ -328,6 +349,7 @@ export async function loadSampleBudgets(
           ]
         : [
             {
+              userId,
               name: 'Kopi',
               amount: 150000,
               frequency: 'Weekly' as const,
@@ -336,6 +358,7 @@ export async function loadSampleBudgets(
               createdAt: serverTimestamp(),
             },
             {
+              userId,
               name: 'Belanja',
               amount: 2000000,
               frequency: 'Monthly' as const,
@@ -344,6 +367,7 @@ export async function loadSampleBudgets(
               createdAt: serverTimestamp(),
             },
             {
+              userId,
               name: 'Sewa Kos',
               amount: 2000000,
               frequency: 'Monthly' as const,
@@ -373,10 +397,12 @@ export async function loadSampleBudgets(
 /**
  * Convert Firestore Document to Budget Type
  * 
+ * Extracts userId from Firestore document
  * Handles timestamp conversion from Firestore Timestamp to milliseconds
  */
 function convertFirestoreToBudget(doc: FirestoreBudget): Omit<Budget, 'id'> {
   return {
+    userId: doc.userId,
     name: doc.name,
     amount: doc.amount,
     frequency: doc.frequency,

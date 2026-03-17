@@ -1,10 +1,12 @@
 /**
  * FIRESTORE SECURITY RULES
  * 
- * ⚠️ IMPORTANT: These rules must be set in Firebase Console
+ * ✅ PRODUCTION-READY: Firebase Auth Integration
  * 
- * For now, this allows authenticated users with localStorage auth.
- * In production, implement proper authentication (Firebase Auth, OAuth, etc.)
+ * These rules enforce:
+ * 1. User authentication (Firebase Auth required)
+ * 2. Data isolation (users can only access their own budgets)
+ * 3. UserId field validation (every budget must have userId field)
  * 
  * Go to: Firebase Console > Firestore > Rules
  * Copy and paste the rules below, then click "Publish"
@@ -13,12 +15,37 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write if user is authenticated via localStorage
-    // NOTE: This is a development setup. Use Firebase Auth in production.
-    match /budgets/{document=**} {
-      allow read, write: if true; // WARNING: Allow all access for MVP
-      // Production rule (uncomment when using Firebase Auth):
-      // allow read, write: if request.auth != null;
+    
+    // Helper function: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function: Check if document belongs to current user
+    function belongsToUser(userId) {
+      return isAuthenticated() && userId == request.auth.uid;
+    }
+    
+    // Budgets Collection: User-isolated data
+    match /budgets/{budgetId} {
+      
+      // READ: User can read their own budgets
+      allow read: if belongsToUser(resource.data.userId);
+      
+      // CREATE: User must include their userId in the document
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.amount is number
+        && request.resource.data.frequency is string
+        && request.resource.data.currency is string;
+      
+      // UPDATE: User can only update their own budgets
+      allow update: if belongsToUser(resource.data.userId)
+        && request.resource.data.userId == request.auth.uid;
+      
+      // DELETE: User can only delete their own budgets
+      allow delete: if belongsToUser(resource.data.userId);
     }
   }
 }

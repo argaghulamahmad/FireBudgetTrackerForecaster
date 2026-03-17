@@ -1,25 +1,130 @@
 /**
  * src/services/authActions.ts
  * 
- * Firebase Auth Action Methods - Google OAuth Only
+ * Firebase Auth Action Methods - Google OAuth & Email/Password
  * 
- * Simplified authentication with Google OAuth provider:
- * - Google sign-in (creates account automatically on first login)
+ * This module provides:
+ * - Email/Password authentication (sign-in & registration)
+ * - Google OAuth integration
  * - Sign-out
  * - Error handling with user-friendly messages
+ * 
+ * All methods are async and return structured result objects.
  */
 
 import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   signInWithPopup,
   GoogleAuthProvider,
-  FirebaseError,
 } from 'firebase/auth';
 import { auth } from './auth';
 
 /**
  * ============================================================================
- *                         GOOGLE OAUTH AUTHENTICATION
+ *                      EMAIL/PASSWORD AUTHENTICATION
+ * ============================================================================
+ */
+
+/**
+ * Sign in user with email and password
+ * 
+ * This method:
+ * 1. Validates email and password
+ * 2. Calls Firebase signInWithEmailAndPassword()
+ * 3. Automatically signs user in on success
+ * 4. Catches Firebase errors and maps them to user-friendly messages
+ * 
+ * @param email User's email address
+ * @param password User's password
+ * @returns Object with success flag and error message if failed
+ * 
+ * @example
+ * const result = await signInWithEmail('user@example.com', 'password123');
+ * if (result.success) {
+ *   // User is now signed in
+ * } else {
+ *   console.error(result.error);
+ * }
+ */
+export async function signInWithEmail(
+  email: string,
+  password: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!email.trim()) {
+      return { success: false, error: 'Email is required' };
+    }
+    if (!password.trim()) {
+      return { success: false, error: 'Password is required' };
+    }
+
+    console.log('[Auth] Signing in with email:', email);
+
+    const result = await signInWithEmailAndPassword(auth, email, password);
+
+    console.log('[Auth] Sign-in successful:', result.user.email);
+    return { success: true };
+  } catch (error) {
+    const mappedError = mapAuthError(error);
+    console.error('[Auth] Sign-in failed:', mappedError);
+    return { success: false, error: mappedError };
+  }
+}
+
+/**
+ * Create new user with email and password
+ * 
+ * This method:
+ * 1. Validates password strength (6+ characters)
+ * 2. Calls Firebase createUserWithEmailAndPassword()
+ * 3. Automatically signs user in on success
+ * 
+ * @param email User's email address
+ * @param password Password (minimum 6 characters)
+ * @returns Object with success flag and new user UID on success
+ * 
+ * @example
+ * const result = await signUpWithEmail('user@example.com', 'SecurePass123!');
+ * if (result.success) {
+ *   console.log('Account created:', result.uid);
+ * }
+ */
+export async function signUpWithEmail(
+  email: string,
+  password: string
+): Promise<{ success: boolean; error?: string; uid?: string }> {
+  try {
+    if (!email.trim()) {
+      return { success: false, error: 'Email is required' };
+    }
+    if (!password.trim()) {
+      return { success: false, error: 'Password is required' };
+    }
+    if (password.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters' };
+    }
+
+    console.log('[Auth] Creating new user:', email);
+
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+
+    console.log('[Auth] Sign-up successful:', result.user.email);
+    return {
+      success: true,
+      uid: result.user.uid,
+    };
+  } catch (error) {
+    const mappedError = mapAuthError(error);
+    console.error('[Auth] Sign-up failed:', mappedError);
+    return { success: false, error: mappedError };
+  }
+}
+
+/**
+ * ============================================================================
+ *                      SOCIAL AUTHENTICATION
  * ============================================================================
  */
 
@@ -28,21 +133,11 @@ const googleProvider = new GoogleAuthProvider();
 
 /**
  * Configure Google OAuth provider settings
- * 
- * This customizes Google login behavior:
- * - Forces account picker on each login
- * - Can request additional scopes (optional)
- * 
- * Called automatically in signInWithGoogle.
  */
 function configureGoogleProvider(): void {
-  // Show account picker every time (allows switching Google accounts)
   googleProvider.setCustomParameters({
     prompt: 'select_account',
   });
-
-  // Optional: Request additional scopes
-  // Example: googleProvider.addScope('https://www.googleapis.com/auth/calendar.readonly');
 }
 
 /**
@@ -52,21 +147,18 @@ function configureGoogleProvider(): void {
  * 1. Opens Google OAuth popup
  * 2. User selects Google account
  * 3. Firebase automatically creates/links user account
- * 4. User is automatically signed in on success
- * 5. Account is created automatically on first login (no sign-up screen needed)
+ * 4. Automatically signs user in on success
  * 
  * Browser Popup Issues:
  * - Popup can be blocked by browser popup blocker
  * - User must allow popups for this domain
- * - Triggers 'auth/popup-blocked' error if blocked
  * 
  * @returns Object with success flag and error message if failed
  * 
  * @example
  * const result = await signInWithGoogle();
  * if (result.success) {
- *   // User signed in, onAuthStateChanged fires
- *   // App automatically redirects to dashboard
+ *   // User is now signed in
  * } else {
  *   console.error(result.error);
  * }
@@ -101,15 +193,13 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: st
  * 2. Clears refresh token
  * 3. onAuthStateChanged fires with user = null
  * 4. App detects and automatically redirects to login page
- * 5. Cached data (budgets, preferences) remain locally
  * 
  * @returns Object with success flag and error message if failed
  * 
  * @example
  * const result = await signOutUser();
  * if (result.success) {
- *   // onAuthStateChanged fires with user = null
- *   // App automatically redirects to login
+ *   // User automatically redirected to login
  * }
  */
 export async function signOutUser(): Promise<{ success: boolean; error?: string }> {
@@ -140,62 +230,61 @@ export async function signOutUser(): Promise<{ success: boolean; error?: string 
  * Firebase throws specific error codes that should be translated
  * to messages users can understand and act on.
  * 
- * Common scenarios:
- * - Popup blocked → "Please allow popups for this site"
- * - Network error → "You're offline. Check your internet."
- * - No Google account → "Please select a Google account"
- * - User cancelled → "Sign-in was cancelled"
- * 
  * @param error Firebase error or any error object
  * @returns User-friendly error message string
- * 
- * @see https://firebase.google.com/docs/auth/troubleshoot-common-issues
  */
 export function mapAuthError(error: any): string {
-  // Check for FirebaseError with code property
   if (error && typeof error.code === 'string') {
     const code = error.code as string;
 
-    // Error code mapping for Google OAuth
     const errorMessages: Record<string, string> = {
+      // Email validation errors
+      'auth/invalid-email': 'Please enter a valid email address',
+      'auth/missing-email': 'Email address is required',
+      'auth/user-mismatch': 'Email does not match the account',
+
+      // Password errors
+      'auth/invalid-password': 'Password must be at least 6 characters',
+      'auth/weak-password': 'Password is too weak. Use uppercase, lowercase, numbers, and symbols',
+      'auth/missing-password': 'Password is required',
+      'auth/wrong-password': 'Incorrect password. Please try again.',
+
+      // Account existence errors
+      'auth/user-not-found': 'No account found with this email address. Please sign up.',
+      'auth/email-already-in-use':
+        'An account with this email already exists. Please sign in instead.',
+
+      // Rate limiting
+      'auth/too-many-requests':
+        'Too many failed attempts. Please try again in a few minutes.',
+      'auth/operation-not-allowed':
+        'This sign-in method is temporarily unavailable. Please try again later.',
+
       // OAuth popup errors
       'auth/popup-blocked':
         'Sign-in popup was blocked. Please allow popups for this site and try again.',
       'auth/popup-closed-by-user': 'You closed the sign-in popup. Please try again.',
       'auth/cancelled-popup-request': 'Sign-in was cancelled. Please try again.',
 
-      // Network and connection errors
+      // Network errors
       'auth/network-request-failed':
         'Network error. Please check your internet connection and try again.',
       'auth/timeout': 'Request timed out. Please try again.',
 
-      // Provider configuration errors
+      // Configuration errors
+      'auth/invalid-api-key': 'App configuration error. Contact support.',
       'auth/unauthorized-domain':
         'This domain is not authorized for this app. Contact support.',
-      'auth/operation-not-allowed':
-        'Google sign-in is temporarily unavailable. Please try again later.',
-
-      // Credential errors
       'auth/invalid-credential': 'Invalid credentials. Please try again.',
-
-      // Generic errors
-      'auth/account-exists-with-different-credential':
-        'This email is already used with a different sign-in method.',
-      'auth/invalid-api-key': 'App configuration error. Contact support.',
     };
 
-    // Return mapped message or generic one with error code
-    return (
-      errorMessages[code] || `Sign-in error (${code}). Please try again.`
-    );
+    return errorMessages[code] || `Authentication error (${code}). Please try again.`;
   }
 
-  // Handle custom error messages
   if (error instanceof Error) {
     return error.message;
   }
 
-  // Unknown error
   return 'An unexpected error occurred. Please try again.';
 }
 
@@ -208,22 +297,11 @@ export function mapAuthError(error: any): string {
 /**
  * Get user ID token for backend API calls
  * 
- * Use this when calling your backend APIs that validate Firebase tokens.
- * Your backend uses Firebase Admin SDK to verify the token.
- * 
+ * Use this when calling backend APIs that validate Firebase tokens.
  * Tokens expire in ~1 hour. Firebase automatically refreshes them.
- * Use forceRefresh = true to ensure fresh token for critical APIs.
  * 
  * @param forceRefresh If true, forcibly refresh token before returning.
  * @returns JWT bearer token string, or null if not authenticated
- * 
- * @example
- * const token = await getIdToken(true);
- * if (token) {
- *   const response = await fetch('/api/budgets', {
- *     headers: { 'Authorization': `Bearer ${token}` }
- *   });
- * }
  */
 export async function getIdToken(forceRefresh: boolean = false): Promise<string | null> {
   try {
