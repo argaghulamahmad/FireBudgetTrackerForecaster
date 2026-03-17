@@ -20,6 +20,7 @@ interface SettingsProps {
 export function Settings({ currency, language, viewMode, t, onCurrencyChange, onLanguageChange, onViewModeChange, onLoadSampleData, onClearData }: SettingsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isLoadSampleModalOpen, setIsLoadSampleModalOpen] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
   const handleExport = async () => {
@@ -174,7 +175,7 @@ export function Settings({ currency, language, viewMode, t, onCurrencyChange, on
               className="hidden" 
             />
             <button 
-              onClick={onLoadSampleData}
+              onClick={() => setIsLoadSampleModalOpen(true)}
               className="w-full px-4 py-4 text-left flex items-center gap-3 border-b border-gray-50 hover:bg-gray-50 text-gray-700 transition-colors"
             >
               <Download className="w-4 h-4 text-blue-500" />
@@ -204,6 +205,20 @@ export function Settings({ currency, language, viewMode, t, onCurrencyChange, on
       </div>
 
       <ConfirmModal
+        isOpen={isLoadSampleModalOpen}
+        title={t.confirmLoadSampleTitle || t.loadSampleData}
+        message={t.confirmLoadSampleMessage || 'This will add example budgets to help you get started.'}
+        confirmText={t.load || 'Load'}
+        cancelText={t.cancel}
+        onConfirm={() => {
+          onLoadSampleData();
+          setIsLoadSampleModalOpen(false);
+        }}
+        onCancel={() => setIsLoadSampleModalOpen(false)}
+        isDestructive={false}
+      />
+
+      <ConfirmModal
         isOpen={isClearModalOpen}
         title={t.confirmClearTitle}
         message={t.confirmClearMessage}
@@ -211,6 +226,7 @@ export function Settings({ currency, language, viewMode, t, onCurrencyChange, on
         cancelText={t.cancel}
         onConfirm={onClearData}
         onCancel={() => setIsClearModalOpen(false)}
+        isDestructive={true}
       />
 
       <ConfirmModal
@@ -221,7 +237,7 @@ export function Settings({ currency, language, viewMode, t, onCurrencyChange, on
         cancelText={t.cancel}
         onConfirm={processImport}
         onCancel={() => setImportFile(null)}
-        isDestructive={false}
+        isDestructive={true}
       />
     </div>
   );

@@ -47,7 +47,8 @@ export const translations = {
     confirmImport: 'Are you sure you want to import this backup? This will replace your current data.',
     importSuccess: 'Import successful!',
     importFailed: 'Import failed. Please check the file format.',
-    editBudget: 'Edit Budget',
+    confirmLoadSampleTitle: 'Load Sample Data',
+    confirmLoadSampleMessage: 'This will add example budgets to help you get started.',
     saveChanges: 'Save Changes',
     search: 'Search...',
     noOptions: 'No options found',
@@ -74,6 +75,7 @@ export const translations = {
     sortByAmount: 'Amount',
     sortByUrgency: 'Urgency',
     maxToSpendToday: 'Max to Spend Today',
+    load: 'Load',
   },
   id: {
     home: 'Beranda',
@@ -120,7 +122,8 @@ export const translations = {
     importBackup: 'Impor Cadangan (GZIP)',
     confirmImport: 'Apakah Anda yakin ingin mengimpor cadangan ini? Ini akan menggantikan data Anda saat ini.',
     importSuccess: 'Impor berhasil!',
-    importFailed: 'Impor gagal. Silakan periksa format file.',
+    confirmLoadSampleTitle: 'Muat Data Sampel',
+    confirmLoadSampleMessage: 'Ini akan menambahkan anggaran contoh untuk membantu Anda memulai.',
     editBudget: 'Edit Anggaran',
     saveChanges: 'Simpan Perubahan',
     search: 'Cari...',
@@ -148,5 +151,6 @@ export const translations = {
     excludeWeekends: 'Tidak Termasuk Akhir Pekan',
     workdaysRemaining: 'hari kerja tersisa di',
     workday: 'hari kerja',
+    load: 'Muat',
   }
 };
