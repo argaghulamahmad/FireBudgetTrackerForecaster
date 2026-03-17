@@ -4,6 +4,8 @@
  */
 
 import { useState, useEffect } from 'react';
+import { User } from 'firebase/auth';
+import { initAuthObserver, cleanupAuthObserver } from './services/auth';
 import { useBudgets } from './hooks/useBudgets';
 import { AddBudgetModal } from './components/AddBudgetModal';
 import { BottomNav } from './components/BottomNav';
@@ -15,10 +17,17 @@ import { Language, translations } from './utils/i18n';
 import { Budget } from './types';
 
 export default function App() {
+  // ==================== Firebase Auth State ====================
+  // user: null = not signed in, User object = signed in
+  // authLoading: true = Firebase SDK still initializing, false = ready
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // ==================== Budget Management State ====================
   const { 
     budgets, 
-    loading, 
-    error, 
+    loading: budgetLoading, 
+    error: budgetError, 
     hasPendingWrites, 
     isFromCache,
     addBudget, 
@@ -27,7 +36,8 @@ export default function App() {
     loadSampleData, 
     clearAllData 
   } = useBudgets();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // ==================== UI State ====================
   const [activeTab, setActiveTab] = useState<'home' | 'settings'>('home');
   const [isAddBudgetOpen, setIsAddBudgetOpen] = useState(false);
   const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);
@@ -35,11 +45,45 @@ export default function App() {
   const [language, setLanguage] = useState<Language>('en');
   const [viewMode, setViewMode] = useState<'compact' | 'detailed'>('detailed');
 
+  // ==================== Firebase Auth Initialization ====================
+  /**
+   * Initialize Firebase Auth Observer
+   * 
+   * This runs ONCE at app mount and sets up the listener that will
+   * detect whenever the user signs in, signs out, or their session
+   * is revoked on another device.
+   * 
+   * SCENARIO A (Page Refresh - Session Persistence):
+   * - User refreshes page
+   * - authLoading = true (show loading screen)
+   * - Firebase SDK loads cached token from IndexedDB (~100ms)
+   * - onAuthStateChanged fires with cached user data
+   * - authLoading = false, user is set
+   * - App skips login page and shows dashboard
+   * 
+   * SCENARIO B (Token Expiration / Revocation):
+   * - User's token expires or is revoked on another device
+   * - Firebase SDK detects invalid token
+   * - onAuthStateChanged fires with user = null
+   * - App automatically redirects to login
+   * 
+   * CRITICAL: Start authLoading as true to wait for Firebase initialization
+   */
   useEffect(() => {
-    const auth = localStorage.getItem('budget_auth');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
-    }
+    // Initialize the global auth observer
+    initAuthObserver((authUser, loading) => {
+      setUser(authUser);
+      setAuthLoading(false); // Firebase has initialized
+    });
+
+    // Cleanup when app unmounts
+    return () => {
+      cleanupAuthObserver();
+    };
+  }, []);
+
+  // ==================== Load User Preferences ====================
+  useEffect(() => {
     const savedCurrency = localStorage.getItem('budget_currency') as Currency;
     if (savedCurrency === 'USD' || savedCurrency === 'IDR') {
       setCurrency(savedCurrency);
@@ -54,6 +98,7 @@ export default function App() {
     }
   }, []);
 
+  // ==================== Event Handlers ====================
   const handleCurrencyChange = (c: Currency) => {
     setCurrency(c);
     localStorage.setItem('budget_currency', c);
@@ -69,15 +114,25 @@ export default function App() {
     localStorage.setItem('budget_view_mode', mode);
   };
 
-  const handleLogin = () => {
-    localStorage.setItem('budget_auth', 'true');
-    setIsAuthenticated(true);
-  };
-
   const t = translations[language];
 
-  if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} t={t} />;
+  // ==================== Route Guarding ====================
+  // Show loading screen while Firebase initializes
+  // This prevents flashing the login page when user refreshes
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">{t.loading || 'Initializing...'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated → show login page
+  if (!user) {
+    return <Login t={t} />;
   }
 
   return (
@@ -86,8 +141,8 @@ export default function App() {
       {activeTab === 'home' ? (
         <Home 
           budgets={budgets}
-          loading={loading}
-          error={error}
+          loading={budgetLoading}
+          error={budgetError}
           hasPendingWrites={hasPendingWrites}
           isFromCache={isFromCache}
           currency={currency}
@@ -111,6 +166,7 @@ export default function App() {
           language={language}
           viewMode={viewMode}
           t={t}
+          user={user}
           onCurrencyChange={handleCurrencyChange}
           onLanguageChange={handleLanguageChange}
           onViewModeChange={handleViewModeChange}
