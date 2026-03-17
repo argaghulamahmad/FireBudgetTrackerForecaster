@@ -1,0 +1,5 @@
+{
+  "name": "BudgetTrackerForecaster",
+  "description": "A mobile-first budget tracking application using IndexedDB for local storage.",
+  "requestFramePermissions": []
+}
