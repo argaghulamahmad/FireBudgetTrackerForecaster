@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, LayoutList, LayoutGrid, ChevronDown } from 'lucide-react';
+import { Plus, LayoutList, LayoutGrid, ChevronDown, AlertCircle } from 'lucide-react';
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -8,21 +8,40 @@ import { Currency } from '../utils/currency';
 import { getTimeMetrics } from '../utils/time';
 
 interface HomeProps {
-  budgets: Budget[] | undefined;
+  budgets: Budget[];
+  loading: boolean;
+  error: Error | null;
+  hasPendingWrites: boolean;
+  isFromCache: boolean;
   currency: Currency;
   t: any;
   viewMode: 'compact' | 'detailed';
   onViewModeChange: (mode: 'compact' | 'detailed') => void;
   onAddBudgetClick: () => void;
   onEditBudget: (budget: Budget) => void;
-  onDeleteBudget: (id: number) => void;
+  onDeleteBudget: (id: string) => Promise<void>;
   onLoadSampleData: () => void;
 }
 
-export function Home({ budgets, currency, t, viewMode, onViewModeChange, onAddBudgetClick, onEditBudget, onDeleteBudget, onLoadSampleData }: HomeProps) {
-  const [budgetToDelete, setBudgetToDelete] = useState<number | null>(null);
+export function Home({ 
+  budgets, 
+  loading, 
+  error, 
+  hasPendingWrites, 
+  isFromCache,
+  currency, 
+  t, 
+  viewMode, 
+  onViewModeChange, 
+  onAddBudgetClick, 
+  onEditBudget, 
+  onDeleteBudget, 
+  onLoadSampleData 
+}: HomeProps) {
+  const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getSortedBudgets = (budgetsToSort: Budget[]) => {
     const sorted = [...budgetsToSort];
@@ -63,20 +82,50 @@ export function Home({ budgets, currency, t, viewMode, onViewModeChange, onAddBu
     }
   };
 
-  const sortedBudgets = budgets ? getSortedBudgets(budgets) : undefined;
+  const sortedBudgets = getSortedBudgets(budgets);
 
   return (
     <div className="px-4 pt-8 pb-24 max-w-md mx-auto">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t.budgets}</h1>
-        <p className="text-gray-500 mt-1">{t.manageSpending}</p>
-      </header>
+      {/* Status Indicators */}
+      {hasPendingWrites && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
+          <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+          <span className="text-sm text-amber-800">{t.syncing || 'Syncing...'}</span>
+        </div>
+      )}
 
-      {budgets && budgets.length > 0 ? (
+      {isFromCache && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+          <span className="text-sm text-blue-800">📶 {t.offline || 'Using offline data'}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-600" />
+          <span className="text-sm text-red-800">{error.message}</span>
+        </div>
+      )}
+
+      {loading && budgets.length === 0 ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full border-2 border-gray-200 border-t-blue-600 animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-500">{t.loadingBudgets || 'Loading budgets...'}</p>
+          </div>
+        </div>
+      ) : (
         <>
-          <SummaryCard budgets={budgets} currency={currency} t={t} viewMode={viewMode} />
-          
-          <div className="space-y-4">
+          <header className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t.budgets}</h1>
+            <p className="text-gray-500 mt-1">{t.manageSpending}</p>
+          </header>
+
+          {budgets && budgets.length > 0 ? (
+            <>
+              <SummaryCard budgets={budgets} currency={currency} t={t} viewMode={viewMode} />
+              
+              <div className="space-y-4">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-lg font-semibold text-gray-900">{t.yourCategories}</h2>
               <div className="flex gap-2">
@@ -138,7 +187,7 @@ export function Home({ budgets, currency, t, viewMode, onViewModeChange, onAddBu
                 </div>
               </div>
             </div>
-            {sortedBudgets?.map(budget => (
+            {sortedBudgets.map(budget => (
               <BudgetCard 
                 key={budget.id} 
                 budget={budget} 
@@ -175,7 +224,7 @@ export function Home({ budgets, currency, t, viewMode, onViewModeChange, onAddBu
         </div>
       )}
 
-      {budgets && budgets.length > 0 && (
+      {budgets.length > 0 && (
         <button
           onClick={onAddBudgetClick}
           className="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all z-40"
@@ -184,15 +233,26 @@ export function Home({ budgets, currency, t, viewMode, onViewModeChange, onAddBu
         </button>
       )}
 
+        </>
+      )}
+
       <ConfirmModal
         isOpen={budgetToDelete !== null}
         title={t.confirmDeleteTitle}
         message={t.confirmDeleteMessage}
         confirmText={t.delete}
         cancelText={t.cancel}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (budgetToDelete !== null) {
-            onDeleteBudget(budgetToDelete);
+            try {
+              setIsDeleting(true);
+              await onDeleteBudget(budgetToDelete);
+              setBudgetToDelete(null);
+            } catch (err) {
+              console.error('Failed to delete budget:', err);
+            } finally {
+              setIsDeleting(false);
+            }
           }
         }}
         onCancel={() => setBudgetToDelete(null)}

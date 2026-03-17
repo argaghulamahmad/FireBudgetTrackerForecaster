@@ -12,9 +12,21 @@ import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { Currency } from './utils/currency';
 import { Language, translations } from './utils/i18n';
+import { Budget } from './types';
 
 export default function App() {
-  const { budgets, addBudget, updateBudget, deleteBudget, loadSampleData, clearAllData } = useBudgets();
+  const { 
+    budgets, 
+    loading, 
+    error, 
+    hasPendingWrites, 
+    isFromCache,
+    addBudget, 
+    updateBudget, 
+    deleteBudget, 
+    loadSampleData, 
+    clearAllData 
+  } = useBudgets();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'settings'>('home');
   const [isAddBudgetOpen, setIsAddBudgetOpen] = useState(false);
@@ -74,6 +86,10 @@ export default function App() {
       {activeTab === 'home' ? (
         <Home 
           budgets={budgets}
+          loading={loading}
+          error={error}
+          hasPendingWrites={hasPendingWrites}
+          isFromCache={isFromCache}
           currency={currency}
           t={t}
           viewMode={viewMode}

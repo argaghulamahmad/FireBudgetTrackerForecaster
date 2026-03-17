@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import { Currency } from '../utils/currency';
 import { Language } from '../utils/i18n';
 import { Globe, DollarSign, Database, Trash2, Download, Upload, FileArchive, LayoutTemplate } from 'lucide-react';
-import { db } from '../db/db';
 import { ConfirmModal } from '../components/ConfirmModal';
 
 interface SettingsProps {
@@ -13,8 +12,8 @@ interface SettingsProps {
   onCurrencyChange: (c: Currency) => void;
   onLanguageChange: (l: Language) => void;
   onViewModeChange: (mode: 'compact' | 'detailed') => void;
-  onLoadSampleData: () => void;
-  onClearData: () => void;
+  onLoadSampleData: () => Promise<void>;
+  onClearData: () => Promise<void>;
 }
 
 export function Settings({ currency, language, viewMode, t, onCurrencyChange, onLanguageChange, onViewModeChange, onLoadSampleData, onClearData }: SettingsProps) {
@@ -24,57 +23,18 @@ export function Settings({ currency, language, viewMode, t, onCurrencyChange, on
   const [importFile, setImportFile] = useState<File | null>(null);
 
   const handleExport = async () => {
-    try {
-      const data = await db.budgets.toArray();
-      const jsonString = JSON.stringify(data);
-      
-      const stream = new Blob([jsonString], { type: 'application/json' }).stream();
-      const compressedStream = stream.pipeThrough(new CompressionStream('gzip'));
-      const compressedResponse = new Response(compressedStream);
-      const blob = await compressedResponse.blob();
-      
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'budget_backup.json.gz';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert('Export failed');
-    }
+    // Export functionality will be implemented with Firestore backup
+    alert(t.exportComingSoon || 'Export functionality coming soon');
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    setImportFile(file);
+    // Import functionality will be implemented with Firestore restore
+    alert(t.importComingSoon || 'Import functionality coming soon');
     event.target.value = '';
   };
 
   const processImport = async () => {
-    if (!importFile) return;
-    
-    try {
-      const stream = importFile.stream();
-      const decompressedStream = stream.pipeThrough(new DecompressionStream('gzip'));
-      const decompressedResponse = new Response(decompressedStream);
-      const jsonString = await decompressedResponse.text();
-      const data = JSON.parse(jsonString);
-      
-      await db.budgets.clear();
-      await db.budgets.bulkAdd(data);
-      
-      alert(t.importSuccess);
-    } catch (error) {
-      console.error('Import failed:', error);
-      alert(t.importFailed);
-    } finally {
-      setImportFile(null);
-    }
+    setImportFile(null);
   };
 
   return (
@@ -210,9 +170,14 @@ export function Settings({ currency, language, viewMode, t, onCurrencyChange, on
         message={t.confirmLoadSampleMessage || 'This will add example budgets to help you get started.'}
         confirmText={t.load || 'Load'}
         cancelText={t.cancel}
-        onConfirm={() => {
-          onLoadSampleData();
-          setIsLoadSampleModalOpen(false);
+        onConfirm={async () => {
+          try {
+            await onLoadSampleData();
+            setIsLoadSampleModalOpen(false);
+          } catch (error) {
+            console.error('Failed to load sample data:', error);
+            alert(t.loadSampleDataFailed || 'Failed to load sample data');
+          }
         }}
         onCancel={() => setIsLoadSampleModalOpen(false)}
         isDestructive={false}
@@ -224,7 +189,15 @@ export function Settings({ currency, language, viewMode, t, onCurrencyChange, on
         message={t.confirmClearMessage}
         confirmText={t.clear}
         cancelText={t.cancel}
-        onConfirm={onClearData}
+        onConfirm={async () => {
+          try {
+            await onClearData();
+            setIsClearModalOpen(false);
+          } catch (error) {
+            console.error('Failed to clear data:', error);
+            alert(t.clearDataFailed || 'Failed to clear data');
+          }
+        }}
         onCancel={() => setIsClearModalOpen(false)}
         isDestructive={true}
       />

@@ -8,7 +8,7 @@ interface BudgetCardProps {
   budget: Budget;
   currency: Currency;
   t: any;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onEdit: (budget: Budget) => void;
   viewMode?: 'compact' | 'detailed';
 }
@@ -48,7 +48,7 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
                 <Pencil className="w-3.5 h-3.5" />
               </button>
               <button 
-                onClick={() => onDelete(budget.id!)}
+                onClick={() => onDelete(budget.id)}
                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -86,7 +86,7 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
             <Pencil className="w-4 h-4" />
           </button>
           <button 
-            onClick={() => onDelete(budget.id!)}
+            onClick={() => onDelete(budget.id)}
             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
           >
             <Trash2 className="w-4 h-4" />

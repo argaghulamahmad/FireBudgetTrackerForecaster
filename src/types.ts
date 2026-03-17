@@ -1,9 +1,9 @@
 export interface Budget {
-  id?: number;
+  id: string; // Firestore document ID (string)
   name: string;
   amount: number;
   frequency: 'Weekly' | 'Monthly' | 'Yearly';
   currency: 'USD' | 'IDR';
-  createdAt: number;
+  createdAt: number; // Milliseconds since epoch
   excludeWeekends?: boolean;
 }

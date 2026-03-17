@@ -9,8 +9,8 @@ interface AddBudgetModalProps {
   currency: Currency;
   t: any;
   onClose: () => void;
-  onAdd: (budget: Omit<Budget, 'id' | 'createdAt'>) => void;
-  onEdit?: (id: number, budget: Partial<Omit<Budget, 'id' | 'createdAt'>>) => void;
+  onAdd: (budget: Omit<Budget, 'id' | 'createdAt'>) => Promise<string>;
+  onEdit?: (id: string, budget: Partial<Omit<Budget, 'id' | 'createdAt'>>) => Promise<void>;
   initialData?: Budget | null;
 }
 
@@ -19,6 +19,7 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
   const [displayAmount, setDisplayAmount] = useState('');
   const [frequency, setFrequency] = useState<'Weekly' | 'Monthly' | 'Yearly'>('Monthly');
   const [excludeWeekends, setExcludeWeekends] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -41,34 +42,42 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
     setDisplayAmount(formatted);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numericAmount = parseCurrencyInput(displayAmount, currency);
     if (!name || !numericAmount) return;
     
-    if (initialData && onEdit) {
-      onEdit(initialData.id!, {
-        name,
-        amount: numericAmount,
-        frequency,
-        currency,
-        excludeWeekends,
-      });
-    } else {
-      onAdd({
-        name,
-        amount: numericAmount,
-        frequency,
-        currency,
-        excludeWeekends,
-      });
+    try {
+      setIsSubmitting(true);
+      if (initialData && onEdit) {
+        await onEdit(initialData.id, {
+          name,
+          amount: numericAmount,
+          frequency,
+          currency,
+          excludeWeekends,
+        });
+      } else {
+        await onAdd({
+          name,
+          amount: numericAmount,
+          frequency,
+          currency,
+          excludeWeekends,
+        });
+      }
+      
+      setName('');
+      setDisplayAmount('');
+      setFrequency('Monthly');
+      setExcludeWeekends(false);
+      onClose();
+    } catch (error) {
+      console.error('Error saving budget:', error);
+      // Error handling could be enhanced with a toast notification
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setName('');
-    setDisplayAmount('');
-    setFrequency('Monthly');
-    setExcludeWeekends(false);
-    onClose();
   };
 
   const frequencyOptions = [
@@ -141,8 +150,12 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
 
           <button 
             type="submit"
-            className="w-full py-4 bg-blue-600 text-white font-semibold rounded-xl mt-6 hover:bg-blue-700 transition-colors"
+            disabled={isSubmitting}
+            className="w-full py-4 bg-blue-600 text-white font-semibold rounded-xl mt-6 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
+            {isSubmitting && (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            )}
             {initialData ? t.saveChanges || 'Save Changes' : t.createBudget}
           </button>
         </form>
