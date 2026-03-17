@@ -1,16 +1,18 @@
+import { memo } from 'react';
 import { Budget } from '../types';
 import { Activity, CalendarDays } from 'lucide-react';
 import { Currency, formatCurrency } from '../utils/currency';
+import { TranslationKeys } from '../utils/i18n';
 import { getTimeMetrics } from '../utils/time';
 
 interface SummaryCardProps {
   budgets: Budget[];
   currency: Currency;
-  t: Record<string, string>;
+  t: Record<TranslationKeys, string>;
   viewMode?: 'compact' | 'detailed';
 }
 
-export function SummaryCard({ budgets, currency, t, viewMode = 'detailed' }: SummaryCardProps) {
+function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: SummaryCardProps) {
   let totalAmount = 0;
   let totalIdealSpent = 0;
   let totalDailyAllowance = 0;
@@ -94,3 +96,5 @@ export function SummaryCard({ budgets, currency, t, viewMode = 'detailed' }: Sum
     </div>
   );
 }
+
+export const SummaryCard = memo(SummaryCardComponent);

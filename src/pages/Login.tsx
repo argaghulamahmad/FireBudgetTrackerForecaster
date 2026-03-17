@@ -1,15 +1,16 @@
 /**
  * src/pages/Login.tsx
- * 
+ *
  * Firebase Auth Login with Email/Password & Google OAuth
  */
 
 import { useState } from 'react';
 import { Mail, Lock, LogIn } from 'lucide-react';
+import { TranslationKeys } from '../utils/i18n';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle, mapAuthError } from '../services/authActions';
 
 interface LoginProps {
-  t: Record<string, string>;
+  t: Record<TranslationKeys, string>;
 }
 
 type AuthMode = 'signin' | 'signup';

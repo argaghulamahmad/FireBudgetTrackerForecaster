@@ -1,25 +1,26 @@
 import { useRef, useState } from 'react';
 import { User } from 'firebase/auth';
 import { Currency } from '../utils/currency';
-import { Language } from '../utils/i18n';
+import { Language, TranslationKeys } from '../utils/i18n';
+import { useBudget } from '../context/BudgetContext';
 import { Globe, DollarSign, Database, Trash2, Download, Upload, FileArchive, LayoutTemplate, LogOut, Mail } from 'lucide-react';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { signOutUser } from '../services/authActions';
+import { exportBudgets, importBudgets } from '../utils/backupUtils';
 
 interface SettingsProps {
   currency: Currency;
   language: Language;
   viewMode: 'compact' | 'detailed';
   user: User;
-  t: Record<string, string>;
+  t: Record<TranslationKeys, string>;
   onCurrencyChange: (c: Currency) => void;
   onLanguageChange: (l: Language) => void;
   onViewModeChange: (mode: 'compact' | 'detailed') => void;
-  onLoadSampleData: () => Promise<void>;
-  onClearData: () => Promise<void>;
 }
 
-export function Settings({ currency, language, viewMode, user, t, onCurrencyChange, onLanguageChange, onViewModeChange, onLoadSampleData, onClearData }: SettingsProps) {
+export function Settings({ currency, language, viewMode, user, t, onCurrencyChange, onLanguageChange, onViewModeChange }: SettingsProps) {
+  const { loadSampleData, clearAllData } = useBudget();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isLoadSampleModalOpen, setIsLoadSampleModalOpen] = useState(false);
@@ -28,18 +29,46 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleExport = async () => {
-    // Export functionality will be implemented with Firestore backup
-    alert(t.exportComingSoon || 'Export functionality coming soon');
+    try {
+      await exportBudgets(user);
+      alert(t.exportSuccess || 'Budget backup downloaded successfully!');
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert(t.exportFailed || 'Failed to export budgets');
+    }
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Import functionality will be implemented with Firestore restore
-    alert(t.importComingSoon || 'Import functionality coming soon');
-    event.target.value = '';
+    const file = event.target.files?.[0];
+    if (!file) {
+      event.target.value = '';
+      return;
+    }
+
+    if (!file.name.endsWith('.gz')) {
+      alert(t.invalidFileFormat || 'Please select a valid backup file (.gz)');
+      event.target.value = '';
+      return;
+    }
+
+    setImportFile(file);
   };
 
   const processImport = async () => {
-    setImportFile(null);
+    if (!importFile) return;
+
+    try {
+      const importedCount = await importBudgets(importFile, user);
+      setImportFile(null);
+      alert(
+        (t.importSuccess || 'Successfully imported') +
+        ` ${importedCount} ${importedCount === 1 ? 'budget' : 'budgets'}`
+      );
+    } catch (error) {
+      console.error('Import failed:', error);
+      alert(t.importFailed || 'Failed to import budgets');
+      setImportFile(null);
+    }
   };
 
   const handleSignOut = async () => {
@@ -218,7 +247,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
         cancelText={t.cancel}
         onConfirm={async () => {
           try {
-            await onLoadSampleData();
+            await loadSampleData('USD');
             setIsLoadSampleModalOpen(false);
           } catch (error) {
             console.error('Failed to load sample data:', error);
@@ -237,7 +266,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
         cancelText={t.cancel}
         onConfirm={async () => {
           try {
-            await onClearData();
+            await clearAllData();
             setIsClearModalOpen(false);
           } catch (error) {
             console.error('Failed to clear data:', error);

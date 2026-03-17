@@ -1,19 +1,21 @@
+import { memo } from 'react';
 import { Budget } from '../types';
 import { Trash2, Clock, Pencil, CalendarDays } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { Currency, formatCurrency } from '../utils/currency';
+import { TranslationKeys } from '../utils/i18n';
 import { getTimeMetrics, getMaxSpendToday } from '../utils/time';
 
 interface BudgetCardProps {
   budget: Budget;
   currency: Currency;
-  t: Record<string, string>;
+  t: Record<TranslationKeys, string>;
   onDelete: (id: string) => void;
   onEdit: (budget: Budget) => void;
   viewMode?: 'compact' | 'detailed';
 }
 
-export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = 'detailed' }: BudgetCardProps) {
+function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode = 'detailed' }: BudgetCardProps) {
   const metrics = getTimeMetrics(budget.frequency, budget.excludeWeekends);
   const idealSpent = (budget.amount * metrics.percentage) / 100;
   const remaining = budget.amount - idealSpent;
@@ -41,13 +43,13 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
               <p className="text-xs text-gray-500">{t.remainingBalance}</p>
             </div>
             <div className="flex gap-1 ml-2">
-              <button 
+              <button
                 onClick={() => onEdit(budget)}
                 className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
-              <button 
+              <button
                 onClick={() => onDelete(budget.id)}
                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
               >
@@ -57,7 +59,7 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
           </div>
         </div>
         <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-          <div 
+          <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
               metrics.percentage > 90 ? 'bg-red-500' : metrics.percentage > 75 ? 'bg-orange-500' : 'bg-blue-500'
@@ -79,13 +81,13 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
           </span>
         </div>
         <div className="flex gap-1">
-          <button 
+          <button
             onClick={() => onEdit(budget)}
             className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
           >
             <Pencil className="w-4 h-4" />
           </button>
-          <button 
+          <button
             onClick={() => onDelete(budget.id)}
             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
           >
@@ -96,7 +98,7 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
 
       <div className="flex items-center gap-1 text-xs text-blue-600 font-medium mb-4 bg-blue-50 w-fit px-2 py-1 rounded-md">
         <Clock className="w-3 h-3" />
-        {metrics.remainingDays} {budget.excludeWeekends ? t.workdaysRemaining : t.daysRemaining} {t[metrics.periodName] || metrics.periodName}
+        {metrics.remainingDays} {budget.excludeWeekends ? t.workdaysRemaining : t.daysRemaining} {t[metrics.periodName as TranslationKeys] || metrics.periodName}
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
@@ -128,7 +130,7 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
       </div>
 
       <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
-        <div 
+        <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
             metrics.percentage > 90 ? 'bg-red-500' : metrics.percentage > 75 ? 'bg-orange-500' : 'bg-blue-500'
@@ -139,3 +141,5 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
     </div>
   );
 }
+
+export const BudgetCard = memo(BudgetCardComponent);

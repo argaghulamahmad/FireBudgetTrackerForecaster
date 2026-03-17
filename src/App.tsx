@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { initAuthObserver, cleanupAuthObserver } from './services/auth';
 import { useBudgets } from './hooks/useBudgets';
+import { BudgetProvider } from './context/BudgetContext';
 import { AddBudgetModal } from './components/AddBudgetModal';
 import { BottomNav } from './components/BottomNav';
 import { Home } from './pages/Home';
@@ -136,59 +137,67 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 selection:bg-blue-100">
-      
-      {activeTab === 'home' ? (
-        <Home 
-          budgets={budgets}
-          loading={budgetLoading}
-          error={budgetError}
-          hasPendingWrites={hasPendingWrites}
-          isFromCache={isFromCache}
+    <BudgetProvider
+      budgetState={{
+        budgets,
+        loading: budgetLoading,
+        error: budgetError,
+        hasPendingWrites,
+        isFromCache,
+        addBudget,
+        updateBudget,
+        deleteBudget,
+        clearAllData,
+        loadSampleData: (curr) => loadSampleData(curr),
+        refetch: async () => {
+          /* refetch handled by listener */
+        },
+      }}
+    >
+      <div className="min-h-screen bg-gray-50 font-sans text-gray-900 selection:bg-blue-100">
+        {activeTab === 'home' ? (
+          <Home
+            currency={currency}
+            t={t}
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            onAddBudgetClick={() => {
+              setBudgetToEdit(null);
+              setIsAddBudgetOpen(true);
+            }}
+            onEditBudget={(budget) => {
+              setBudgetToEdit(budget);
+              setIsAddBudgetOpen(true);
+            }}
+          />
+        ) : (
+          <Settings
+            currency={currency}
+            language={language}
+            viewMode={viewMode}
+            t={t}
+            user={user}
+            onCurrencyChange={handleCurrencyChange}
+            onLanguageChange={handleLanguageChange}
+            onViewModeChange={handleViewModeChange}
+          />
+        )}
+
+        <BottomNav activeTab={activeTab} onChange={setActiveTab} t={t} />
+
+        <AddBudgetModal
+          isOpen={isAddBudgetOpen}
           currency={currency}
           t={t}
-          viewMode={viewMode}
-          onViewModeChange={handleViewModeChange}
-          onAddBudgetClick={() => {
+          onClose={() => {
+            setIsAddBudgetOpen(false);
             setBudgetToEdit(null);
-            setIsAddBudgetOpen(true);
           }}
-          onEditBudget={(budget) => {
-            setBudgetToEdit(budget);
-            setIsAddBudgetOpen(true);
-          }}
-          onDeleteBudget={deleteBudget}
-          onLoadSampleData={() => loadSampleData(currency)}
+          onAdd={(budget) => addBudget({ ...budget, userId: user?.uid ?? '' })}
+          onEdit={updateBudget}
+          initialData={budgetToEdit}
         />
-      ) : (
-        <Settings 
-          currency={currency}
-          language={language}
-          viewMode={viewMode}
-          t={t}
-          user={user}
-          onCurrencyChange={handleCurrencyChange}
-          onLanguageChange={handleLanguageChange}
-          onViewModeChange={handleViewModeChange}
-          onLoadSampleData={() => loadSampleData(currency)}
-          onClearData={clearAllData}
-        />
-      )}
-
-      <BottomNav activeTab={activeTab} onChange={setActiveTab} t={t} />
-
-      <AddBudgetModal 
-        isOpen={isAddBudgetOpen} 
-        currency={currency}
-        t={t}
-        onClose={() => {
-          setIsAddBudgetOpen(false);
-          setBudgetToEdit(null);
-        }} 
-        onAdd={(budget) => addBudget({ ...budget, userId: user?.uid || '' })} 
-        onEdit={updateBudget}
-        initialData={budgetToEdit}
-      />
-    </div>
+      </div>
+    </BudgetProvider>
   );
 }

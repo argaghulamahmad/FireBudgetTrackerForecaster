@@ -1,10 +1,11 @@
 import { Home, Settings } from 'lucide-react';
+import { TranslationKeys } from '../utils/i18n';
 import { cn } from '../utils/cn';
 
 interface BottomNavProps {
   activeTab: 'home' | 'settings';
   onChange: (tab: 'home' | 'settings') => void;
-  t: Record<string, string>;
+  t: Record<TranslationKeys, string>;
 }
 
 export function BottomNav({ activeTab, onChange, t }: BottomNavProps) {

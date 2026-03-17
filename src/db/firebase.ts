@@ -17,6 +17,9 @@ import {
   persistentMultipleTabManager,
   connectFirestoreEmulator,
 } from 'firebase/firestore';
+import { getLogger } from '../utils/logger';
+
+const log = getLogger('Firebase');
 
 /**
  * Firebase Configuration
@@ -62,10 +65,10 @@ export const db = initializeFirestore(app, {
  */
 export async function initializeOfflinePersistence(): Promise<'enabled' | 'offline'> {
   try {
-    console.warn('✅ Persistent local cache initialized with multi-tab manager');
+    log.warn('✅ Persistent local cache initialized with multi-tab manager');
     return 'enabled';
   } catch (error) {
-    console.warn('⚠️ Offline persistence not fully available:', error);
+    log.warn('⚠️ Offline persistence not fully available:', error);
     return 'offline';
   }
 }
@@ -84,9 +87,9 @@ export function setupFirestoreEmulator(useEmulator = false): void {
   ) {
     try {
       connectFirestoreEmulator(db, 'localhost', 8080);
-      console.warn('🔧 Connected to Firestore Emulator at localhost:8080');
+      log.warn('🔧 Connected to Firestore Emulator at localhost:8080');
     } catch {
-      console.warn('Firestore Emulator already connected or unavailable');
+      log.warn('Firestore Emulator already connected or unavailable');
     }
   }
 }

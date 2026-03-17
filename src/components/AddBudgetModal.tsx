@@ -2,19 +2,16 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Budget } from '../types';
 import { Currency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
+import { TranslationKeys } from '../utils/i18n';
 import { SearchableSelect } from './SearchableSelect';
-
-interface Translations {
-  [key: string]: string;
-}
 
 interface AddBudgetModalProps {
   isOpen: boolean;
   currency: Currency;
-  t: Translations;
+  t: Record<TranslationKeys, string>;
   onClose: () => void;
-  onAdd: (budget: Omit<Budget, 'id' | 'createdAt'>) => Promise<string>;
-  onEdit?: (id: string, budget: Partial<Omit<Budget, 'id' | 'createdAt'>>) => Promise<void>;
+  onAdd: (budget: Omit<Budget, 'id' | 'createdAt' | 'userId'>) => Promise<string>;
+  onEdit?: (id: string, budget: Partial<Omit<Budget, 'id' | 'createdAt' | 'userId'>>) => Promise<void>;
   initialData?: Budget | null;
 }
 

@@ -3,46 +3,34 @@ import { Plus, LayoutList, LayoutGrid, ChevronDown, AlertCircle, RefreshCw } fro
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { useBudget } from '../context/BudgetContext';
 import { Budget } from '../types';
 import { Currency } from '../utils/currency';
+import { TranslationKeys } from '../utils/i18n';
 import { getTimeMetrics } from '../utils/time';
 
 interface HomeProps {
-  budgets: Budget[];
-  loading: boolean;
-  error: Error | null;
-  hasPendingWrites: boolean;
-  isFromCache: boolean;
   currency: Currency;
-  t: Record<string, string>;
+  t: Record<TranslationKeys, string>;
   viewMode: 'compact' | 'detailed';
   onViewModeChange: (mode: 'compact' | 'detailed') => void;
   onAddBudgetClick: () => void;
   onEditBudget: (budget: Budget) => void;
-  onDeleteBudget: (id: string) => Promise<void>;
-  onLoadSampleData: () => void;
 }
 
 export function Home({
-  budgets,
-  loading,
-  error,
-  hasPendingWrites,
-  isFromCache,
   currency,
   t,
   viewMode,
   onViewModeChange,
   onAddBudgetClick,
   onEditBudget,
-  onDeleteBudget,
-  onLoadSampleData
 }: HomeProps) {
+  const { budgets, loading, error, hasPendingWrites, isFromCache, deleteBudget, loadSampleData } = useBudget();
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [dismissedError, setDismissedError] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Auto-clear dismiss flag when error changes
   useEffect(() => {
@@ -282,8 +270,8 @@ export function Home({
                   <RefreshCw className="w-4 h-4" />
                   Try Again
                 </button>
-                <button 
-                  onClick={onLoadSampleData}
+                <button
+                  onClick={() => loadSampleData('USD')}
                   className="w-full px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
                 >
                   Load Sample Budgets
@@ -301,14 +289,14 @@ export function Home({
               <h2 className="text-xl font-semibold text-gray-900 mb-2">{t.welcome}</h2>
               <p className="text-gray-500 mb-8">{t.createFirstBudget}</p>
               <div className="flex flex-col gap-3 max-w-xs mx-auto">
-                <button 
+                <button
                   onClick={onAddBudgetClick}
                   className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
                 >
                   {t.createBudget}
                 </button>
-                <button 
-                  onClick={onLoadSampleData}
+                <button
+                  onClick={() => loadSampleData('USD')}
                   className="w-full px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
                 >
                   {t.loadSampleData}
@@ -340,13 +328,10 @@ export function Home({
         onConfirm={async () => {
           if (budgetToDelete !== null) {
             try {
-              setIsDeleting(true);
-              await onDeleteBudget(budgetToDelete);
+              await deleteBudget(budgetToDelete);
               setBudgetToDelete(null);
             } catch (err) {
               console.error('Failed to delete budget:', err);
-            } finally {
-              setIsDeleting(false);
             }
           }
         }}
