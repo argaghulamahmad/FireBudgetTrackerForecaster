@@ -14,7 +14,7 @@ interface BudgetCardProps {
 }
 
 export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = 'detailed' }: BudgetCardProps) {
-  const metrics = getTimeMetrics(budget.frequency);
+  const metrics = getTimeMetrics(budget.frequency, budget.excludeWeekends);
   const idealSpent = (budget.amount * metrics.percentage) / 100;
   const remaining = budget.amount - idealSpent;
   const dailyAllowance = metrics.remainingDays > 0 ? remaining / metrics.remainingDays : remaining;
@@ -95,7 +95,7 @@ export function BudgetCard({ budget, currency, t, onDelete, onEdit, viewMode = '
 
       <div className="flex items-center gap-1 text-xs text-blue-600 font-medium mb-4 bg-blue-50 w-fit px-2 py-1 rounded-md">
         <Clock className="w-3 h-3" />
-        {metrics.remainingDays} {t.daysRemaining} {t[metrics.periodName] || metrics.periodName}
+        {metrics.remainingDays} {budget.excludeWeekends ? t.workdaysRemaining : t.daysRemaining} {t[metrics.periodName] || metrics.periodName}
       </div>
 
       <div className="mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">

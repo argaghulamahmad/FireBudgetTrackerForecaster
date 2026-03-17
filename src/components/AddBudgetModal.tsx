@@ -18,16 +18,19 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
   const [name, setName] = useState('');
   const [displayAmount, setDisplayAmount] = useState('');
   const [frequency, setFrequency] = useState<'Weekly' | 'Monthly' | 'Yearly'>('Monthly');
+  const [excludeWeekends, setExcludeWeekends] = useState(false);
 
   useEffect(() => {
     if (initialData) {
       setName(initialData.name);
       setDisplayAmount(formatCurrencyInput(initialData.amount.toString(), currency));
       setFrequency(initialData.frequency);
+      setExcludeWeekends(initialData.excludeWeekends || false);
     } else {
       setName('');
       setDisplayAmount('');
       setFrequency('Monthly');
+      setExcludeWeekends(false);
     }
   }, [initialData, isOpen, currency]);
 
@@ -49,6 +52,7 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
         amount: numericAmount,
         frequency,
         currency,
+        excludeWeekends,
       });
     } else {
       onAdd({
@@ -56,12 +60,14 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
         amount: numericAmount,
         frequency,
         currency,
+        excludeWeekends,
       });
     }
     
     setName('');
     setDisplayAmount('');
     setFrequency('Monthly');
+    setExcludeWeekends(false);
     onClose();
   };
 
@@ -120,6 +126,17 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
               searchPlaceholder={t.search || 'Search...'}
               noOptionsText={t.noOptions || 'No options found'}
             />
+          </div>
+
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <input 
+              type="checkbox"
+              id="excludeWeekends"
+              checked={excludeWeekends}
+              onChange={(e) => setExcludeWeekends(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            />
+            <label htmlFor="excludeWeekends" className="text-sm font-medium text-gray-700 cursor-pointer">{t.excludeWeekends}</label>
           </div>
 
           <button 

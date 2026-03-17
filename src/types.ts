@@ -5,4 +5,5 @@ export interface Budget {
   frequency: 'Weekly' | 'Monthly' | 'Yearly';
   currency: 'USD' | 'IDR';
   createdAt: number;
+  excludeWeekends?: boolean;
 }

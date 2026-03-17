@@ -66,6 +66,9 @@ export const translations = {
     viewMode: 'View Mode',
     dailyAllowance: 'Daily Allowance',
     forecastedSpent: 'Forecasted Spent',
+    excludeWeekends: 'Exclude Weekends',
+    workdaysRemaining: 'workdays remaining in this',
+    workday: 'workday',
   },
   id: {
     home: 'Beranda',
@@ -132,5 +135,8 @@ export const translations = {
     viewMode: 'Mode Tampilan',
     dailyAllowance: 'Jatah Harian',
     forecastedSpent: 'Prakiraan Pengeluaran',
+    excludeWeekends: 'Tidak Termasuk Akhir Pekan',
+    workdaysRemaining: 'hari kerja tersisa di',
+    workday: 'hari kerja',
   }
 };

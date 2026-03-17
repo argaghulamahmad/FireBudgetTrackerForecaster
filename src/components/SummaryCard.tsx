@@ -16,7 +16,7 @@ export function SummaryCard({ budgets, currency, t, viewMode = 'detailed' }: Sum
   let totalDailyAllowance = 0;
 
   budgets.forEach(b => {
-    const metrics = getTimeMetrics(b.frequency);
+    const metrics = getTimeMetrics(b.frequency, b.excludeWeekends);
     totalAmount += b.amount;
     const idealSpent = (b.amount * metrics.percentage) / 100;
     totalIdealSpent += idealSpent;
