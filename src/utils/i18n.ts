@@ -49,6 +49,7 @@ export const translations = {
     importFailed: 'Import failed. Please check the file format.',
     confirmLoadSampleTitle: 'Load Sample Data',
     confirmLoadSampleMessage: 'This will add example budgets to help you get started.',
+    editBudget: 'Edit Budget',
     saveChanges: 'Save Changes',
     search: 'Search...',
     noOptions: 'No options found',
@@ -76,6 +77,10 @@ export const translations = {
     sortByUrgency: 'Urgency',
     maxToSpendToday: 'Max to Spend Today',
     load: 'Load',
+    loading: 'Loading...',
+    syncing: 'Syncing...',
+    offline: 'Using offline data',
+    loadingBudgets: 'Loading budgets...',
   },
   id: {
     home: 'Beranda',
@@ -153,5 +158,12 @@ export const translations = {
     workdaysRemaining: 'hari kerja tersisa di',
     workday: 'hari kerja',
     load: 'Muat',
+    loading: 'Memuat...',
+    syncing: 'Menyinkronkan...',
+    offline: 'Menggunakan data offline',
+    loadingBudgets: 'Memuat anggaran...',
   }
 };
+
+// Type-safe translation keys
+export type TranslationKeys = keyof typeof translations.en;

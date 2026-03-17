@@ -13,7 +13,7 @@ import { Home } from './pages/Home';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { Currency } from './utils/currency';
-import { Language, translations } from './utils/i18n';
+import { Language, translations, TranslationKeys } from './utils/i18n';
 import { Budget } from './types';
 
 export default function App() {
@@ -24,18 +24,18 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   // ==================== Budget Management State ====================
-  const { 
-    budgets, 
-    loading: budgetLoading, 
-    error: budgetError, 
-    hasPendingWrites, 
+  const {
+    budgets,
+    loading: budgetLoading,
+    error: budgetError,
+    hasPendingWrites,
     isFromCache,
-    addBudget, 
-    updateBudget, 
-    deleteBudget, 
-    loadSampleData, 
-    clearAllData 
-  } = useBudgets(user?.uid || null);
+    addBudget,
+    updateBudget,
+    deleteBudget,
+    loadSampleData,
+    clearAllData
+  } = useBudgets(user?.uid ?? null);
 
   // ==================== UI State ====================
   const [activeTab, setActiveTab] = useState<'home' | 'settings'>('home');

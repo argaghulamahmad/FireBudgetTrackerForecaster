@@ -44,10 +44,11 @@ export interface UseBudgetsReturn {
 
 /**
  * useBudgets Hook
- * 
+ *
+ * @param userId Current user's Firebase UID (required for data isolation)
  * @returns Object with budgets data, loading state, and CRUD operations
  */
-export function useBudgets(): UseBudgetsReturn {
+export function useBudgets(userId: string | null): UseBudgetsReturn {
   const {
     data: budgets,
     loading,
@@ -55,7 +56,7 @@ export function useBudgets(): UseBudgetsReturn {
     hasPendingWrites,
     isFromCache,
     refetch,
-  } = useFirestoreLiveData(true);
+  } = useFirestoreLiveData(userId, true);
 
   return {
     budgets,
@@ -97,7 +98,8 @@ export function useBudgets(): UseBudgetsReturn {
 
     clearAllData: async () => {
       try {
-        await clearAllBudgets();
+        if (!userId) throw new Error('User ID is required');
+        await clearAllBudgets(userId);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         console.error('Failed to clear all data:', error);
@@ -107,8 +109,9 @@ export function useBudgets(): UseBudgetsReturn {
 
     loadSampleData: async (currency) => {
       try {
-        await clearAllBudgets();
-        await loadSampleBudgets(currency);
+        if (!userId) throw new Error('User ID is required');
+        await clearAllBudgets(userId);
+        await loadSampleBudgets(userId, currency);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         console.error('Failed to load sample data:', error);

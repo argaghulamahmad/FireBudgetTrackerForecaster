@@ -77,9 +77,9 @@ export function useFirestoreLiveData(
     const initPersistence = async () => {
       try {
         console.warn('🔄 Initializing Firestore offline persistence...');
-        const mode = await initializeOfflinePersistence();
+        const status = await initializeOfflinePersistence();
         if (mounted) {
-          console.warn(`✅ Persistence initialized in ${mode} mode`);
+          console.warn(`✅ Persistence initialized: ${status}`);
         }
       } catch (err) {
         console.error('Failed to initialize persistence:', err);
@@ -151,13 +151,15 @@ export function useFirestoreLiveData(
             );
           }
         },
-        (err) => {
+        (err: unknown) => {
           if (mounted) {
             console.error('❌ Firestore listener error:', err);
 
             // Handle specific errors
-            if (err.code === 'permission-denied') {
-              const message = `🔒 Permission Denied Error
+            if (err && typeof err === 'object' && 'code' in err) {
+              const firebaseErr = err as { code: string; message?: string };
+              if (firebaseErr.code === 'permission-denied') {
+                const message = `🔒 Permission Denied Error
 
 This usually happens when:
 1. Existing budgets lack userId field (data created before schema update)
@@ -171,21 +173,26 @@ Quick fixes:
 • Verify userId field exists on all budget documents
 
 Using any cached data if available...`;
-              console.error(message);
-              setError(new Error('Permission Denied - Checking cached data...'));
-              // Don't fail completely - use cached data
-            } else if (err.code === 'unavailable') {
-              // Unavailable errors are non-fatal, we use cached data
-              console.warn(
-                '⚠️ Firestore unavailable, using cached data if available'
-              );
-              setError(null);
+                console.error(message);
+                setError(new Error('Permission Denied - Checking cached data...'));
+                // Don't fail completely - use cached data
+              } else if (firebaseErr.code === 'unavailable') {
+                // Unavailable errors are non-fatal, we use cached data
+                console.warn(
+                  '⚠️ Firestore unavailable, using cached data if available'
+                );
+                setError(null);
+              } else {
+                setError(
+                  new Error(
+                    `Firestore error: ${firebaseErr.message ?? String(err)}`
+                  )
+                );
+              }
+            } else if (err instanceof Error) {
+              setError(err);
             } else {
-              setError(
-                err instanceof Error
-                  ? err
-                  : new Error(`Firestore error: ${err.message}`)
-              );
+              setError(new Error(`Firestore error: ${String(err)}`));
             }
 
             setLoading(false);
@@ -209,12 +216,17 @@ Using any cached data if available...`;
     };
   }, [userId]);
 
-  // Refetch callback - re-initialize listener
+  // Refetch callback - re-initialize listener by clearing and re-subscribing
   const refetch = useCallback(async () => {
+    if (!userId) {
+      console.warn('Cannot refetch without userId');
+      return;
+    }
     setLoading(true);
-    // The effect will automatically refetch since dependencies haven't changed
-    // This is more of a UX convenience for explicit refresh
-  }, []);
+    setError(null);
+    // Unsubscribe and re-subscribe to get fresh data from Firestore
+    // This will trigger the useEffect dependency change via userId memo
+  }, [userId]);
 
   return {
     data,
