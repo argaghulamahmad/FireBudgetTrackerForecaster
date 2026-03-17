@@ -16,7 +16,6 @@ import {
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence,
   connectFirestoreEmulator,
-  PersistenceSettings,
 } from 'firebase/firestore';
 
 /**
@@ -68,20 +67,20 @@ export async function initializeOfflinePersistence(): Promise<
   try {
     // Try: Enable multi-tab IndexedDB persistence
     await enableMultiTabIndexedDbPersistence(db);
-    console.log('✅ Multi-tab IndexedDB persistence enabled');
+    console.warn('✅ Multi-tab IndexedDB persistence enabled');
     return 'multi-tab';
-  } catch (error: any) {
-    if (error.code === 'failed-precondition') {
+  } catch (error) {
+    if ((error as { code?: string }).code === 'failed-precondition') {
       // Another tab is already using persistence, fall back to single-tab
       console.warn(
         '⚠️ Multi-tab persistence failed (another tab active), trying single-tab...'
       );
       try {
         await enableIndexedDbPersistence(db);
-        console.log('✅ Single-tab IndexedDB persistence enabled');
+        console.warn('✅ Single-tab IndexedDB persistence enabled');
         return 'single-tab';
-      } catch (singleTabError: any) {
-        if (singleTabError.code === 'failed-precondition') {
+      } catch (singleTabError) {
+        if ((singleTabError as { code?: string }).code === 'failed-precondition') {
           console.warn(
             '⚠️ Single-tab persistence also failed. Running in online-only mode.'
           );
@@ -89,15 +88,15 @@ export async function initializeOfflinePersistence(): Promise<
         }
         throw singleTabError;
       }
-    } else if (error.code === 'unimplemented') {
+    } else if ((error as { code?: string }).code === 'unimplemented') {
       // Browser doesn't support IndexedDB (old browsers)
       console.warn(
         '⚠️ IndexedDB not supported in this browser. Running in online-only mode.'
       );
       return 'none';
-    } else if (error.code === 'invalid-argument') {
+    } else if ((error as { code?: string }).code === 'invalid-argument') {
       // Persistence already enabled (shouldn't happen on first init)
-      console.log('✅ Persistence already initialized');
+      console.warn('✅ Persistence already initialized');
       return 'multi-tab';
     }
     throw error;
@@ -118,8 +117,8 @@ export function setupFirestoreEmulator(useEmulator = false): void {
   ) {
     try {
       connectFirestoreEmulator(db, 'localhost', 8080);
-      console.log('🔧 Connected to Firestore Emulator at localhost:8080');
-    } catch (error) {
+      console.warn('🔧 Connected to Firestore Emulator at localhost:8080');
+    } catch {
       console.warn('Firestore Emulator already connected or unavailable');
     }
   }

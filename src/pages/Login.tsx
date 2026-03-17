@@ -9,7 +9,7 @@ import { Mail, Lock, LogIn } from 'lucide-react';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle, mapAuthError } from '../services/authActions';
 
 interface LoginProps {
-  t: any;
+  t: Record<string, string>;
 }
 
 type AuthMode = 'signin' | 'signup';

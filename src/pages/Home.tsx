@@ -14,7 +14,7 @@ interface HomeProps {
   hasPendingWrites: boolean;
   isFromCache: boolean;
   currency: Currency;
-  t: any;
+  t: Record<string, string>;
   viewMode: 'compact' | 'detailed';
   onViewModeChange: (mode: 'compact' | 'detailed') => void;
   onAddBudgetClick: () => void;
@@ -41,8 +41,6 @@ export function Home({
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
   const [dismissedError, setDismissedError] = useState(false);
 
   // Auto-clear dismiss flag when error changes

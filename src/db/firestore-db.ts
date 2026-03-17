@@ -14,11 +14,9 @@
 import {
   collection,
   doc,
-  setDoc,
   addDoc,
   deleteDoc,
   updateDoc,
-  query,
   where,
   orderBy,
   onSnapshot,
@@ -27,9 +25,7 @@ import {
   serverTimestamp,
   Timestamp,
   Unsubscribe,
-  Query,
   QueryConstraint,
-  QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Budget } from '../types';
@@ -152,7 +148,7 @@ export function subscribeTobudgets(
         const isFromCache = snapshot.metadata.fromCache;
 
         // Log for debugging
-        console.log(`📊 Budgets updated (pending: ${hasPendingWrites}, cache: ${isFromCache})`);
+        console.warn(`📈 Budgets updated (pending: ${hasPendingWrites}, cache: ${isFromCache})`);
 
         // Invoke callback
         onNext(budgets);
@@ -216,7 +212,7 @@ export async function addBudget(
       }
     );
 
-    console.log('✅ Budget added:', docRef.id);
+    console.warn('✅ Budget added:', docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('Error adding budget:', error);
@@ -242,7 +238,7 @@ export async function updateBudget(
 ): Promise<void> {
   try {
     await updateDoc(doc(db, BUDGETS_COLLECTION, id), updates);
-    console.log('✅ Budget updated:', id);
+    console.warn('✅ Budget updated:', id);
   } catch (error) {
     console.error('Error updating budget:', error);
     throw error;
@@ -262,7 +258,7 @@ export async function updateBudget(
 export async function deleteBudget(id: string): Promise<void> {
   try {
     await deleteDoc(doc(db, BUDGETS_COLLECTION, id));
-    console.log('✅ Budget deleted:', id);
+    console.warn('✅ Budget deleted:', id);
   } catch (error) {
     console.error('Error deleting budget:', error);
     throw error;
@@ -298,7 +294,7 @@ export async function clearAllBudgets(userId: string): Promise<void> {
     });
 
     await batch.commit();
-    console.log('✅ All budgets cleared');
+    console.warn('✅ All budgets cleared');
   } catch (error) {
     console.error('Error clearing budgets:', error);
     throw error;
@@ -389,7 +385,7 @@ export async function loadSampleBudgets(
     });
 
     await batch.commit();
-    console.log('✅ Sample budgets loaded');
+    console.warn('✅ Sample budgets loaded');
   } catch (error) {
     console.error('Error loading sample data:', error);
     throw error;
@@ -437,7 +433,7 @@ function convertFirestoreToBudget(doc: FirestoreBudget): Omit<Budget, 'id'> {
  */
 export async function migrateOldBudgets(userId: string): Promise<{ message: string }> {
   try {
-    console.log('🔄 Starting budget migration...');
+    console.warn('🔄 Starting budget migration...');
     
     // First, try to query with userId filter (this will fail if composite index isn't ready)
     const userQ = query(
@@ -445,7 +441,7 @@ export async function migrateOldBudgets(userId: string): Promise<{ message: stri
       where('userId', '==', userId)
     );
     const userSnapshot = await getDocs(userQ);
-    console.log(`✅ Found ${userSnapshot.docs.length} user budgets with proper userId`);
+    console.warn(`✅ Found ${userSnapshot.docs.length} user budgets with proper userId`);
     
     return { message: `Migration check complete: ${userSnapshot.docs.length} budgets have userId` };
   } catch (error) {

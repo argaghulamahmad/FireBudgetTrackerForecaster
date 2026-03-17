@@ -71,7 +71,7 @@ export default function App() {
    */
   useEffect(() => {
     // Initialize the global auth observer
-    initAuthObserver((authUser, loading) => {
+    initAuthObserver((authUser, _loading) => {
       setUser(authUser);
       setAuthLoading(false); // Firebase has initialized
     });

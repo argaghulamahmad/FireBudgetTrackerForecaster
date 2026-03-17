@@ -60,11 +60,11 @@ export async function signInWithEmail(
       return { success: false, error: 'Password is required' };
     }
 
-    console.log('[Auth] Signing in with email:', email);
+    console.warn('[Auth] Signing in with email:', email);
 
     const result = await signInWithEmailAndPassword(auth, email, password);
 
-    console.log('[Auth] Sign-in successful:', result.user.email);
+    console.warn('[Auth] Sign-in successful:', result.user.email);
     return { success: true };
   } catch (error) {
     const mappedError = mapAuthError(error);
@@ -106,11 +106,11 @@ export async function signUpWithEmail(
       return { success: false, error: 'Password must be at least 6 characters' };
     }
 
-    console.log('[Auth] Creating new user:', email);
+    console.warn('[Auth] Creating new user:', email);
 
     const result = await createUserWithEmailAndPassword(auth, email, password);
 
-    console.log('[Auth] Sign-up successful:', result.user.email);
+    console.warn('[Auth] Sign-up successful:', result.user.email);
     return {
       success: true,
       uid: result.user.uid,
@@ -165,14 +165,14 @@ function configureGoogleProvider(): void {
  */
 export async function signInWithGoogle(): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log('[Auth] Initiating Google OAuth sign-in');
+    console.warn('[Auth] Initiating Google OAuth sign-in');
     configureGoogleProvider();
 
     const result = await signInWithPopup(auth, googleProvider);
 
-    console.log('[Auth] Google sign-in successful:', result.user.email);
+    console.warn('[Auth] Google sign-in successful:', result.user.email);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     const mappedError = mapAuthError(error);
     console.error('[Auth] Google sign-in failed:', mappedError);
     return { success: false, error: mappedError };
@@ -205,11 +205,11 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: st
 export async function signOutUser(): Promise<{ success: boolean; error?: string }> {
   try {
     const email = auth.currentUser?.email;
-    console.log('[Auth] Signing out user:', email);
+    console.warn('[Auth] Signing out user:', email);
 
     await signOut(auth);
 
-    console.log('[Auth] Sign-out successful');
+    console.warn('[Auth] Sign-out successful');
     return { success: true };
   } catch (error) {
     const mappedError = mapAuthError(error);
@@ -233,9 +233,9 @@ export async function signOutUser(): Promise<{ success: boolean; error?: string 
  * @param error Firebase error or any error object
  * @returns User-friendly error message string
  */
-export function mapAuthError(error: any): string {
-  if (error && typeof error.code === 'string') {
-    const code = error.code as string;
+export function mapAuthError(error: unknown): string {
+  if (error && typeof error === 'object' && 'code' in error && typeof (error as { code: unknown }).code === 'string') {
+    const code = (error as { code: string }).code;
 
     const errorMessages: Record<string, string> = {
       // Email validation errors

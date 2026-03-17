@@ -4,7 +4,7 @@ import { cn } from '../utils/cn';
 interface BottomNavProps {
   activeTab: 'home' | 'settings';
   onChange: (tab: 'home' | 'settings') => void;
-  t: any;
+  t: Record<string, string>;
 }
 
 export function BottomNav({ activeTab, onChange, t }: BottomNavProps) {

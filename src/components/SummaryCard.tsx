@@ -6,7 +6,7 @@ import { getTimeMetrics } from '../utils/time';
 interface SummaryCardProps {
   budgets: Budget[];
   currency: Currency;
-  t: any;
+  t: Record<string, string>;
   viewMode?: 'compact' | 'detailed';
 }
 

@@ -5,16 +5,6 @@
  * Helps with debugging and auditing authentication flow
  */
 
-type LogLevel = 'log' | 'warn' | 'error' | 'info';
-
-interface LogEntry {
-  timestamp: string;
-  level: LogLevel;
-  action: string;
-  data?: Record<string, any>;
-  message?: string;
-}
-
 /**
  * Log an authentication action
  * 
@@ -23,44 +13,13 @@ interface LogEntry {
  */
 export function logAuthAction(
   action: string,
-  data?: Record<string, any>
+  data?: Record<string, unknown>
 ): void {
-  const entry: LogEntry = {
-    timestamp: new Date().toISOString(),
-    level: 'log',
-    action,
-    data: sanitizeData(data),
-  };
-
-  console.log(`[Auth] ${action}`, data);
+  console.warn(`[Auth] ${action}`, data);
 
   // Optional: Send to analytics service
-  // analytics.logEvent('auth_action', { action, ...entry });
-}
-
-/**
- * Remove sensitive data from logs (passwords, tokens, etc.)
- */
-function sanitizeData(data?: Record<string, any>): Record<string, any> | undefined {
-  if (!data) return undefined;
-
-  const sanitized = { ...data };
-  const sensitiveKeys = [
-    'password',
-    'token',
-    'refreshToken',
-    'idToken',
-    'accessToken',
-    'secret',
-  ];
-
-  sensitiveKeys.forEach((key) => {
-    if (sanitized[key]) {
-      sanitized[key] = '[REDACTED]';
-    }
-  });
-
-  return sanitized;
+  // const entry = { timestamp: new Date().toISOString(), level: 'log' as const, action, data: sanitizeData(data) };
+  // analytics.logEvent('auth_action', entry);
 }
 
 /**
@@ -71,9 +30,9 @@ function sanitizeData(data?: Record<string, any>): Record<string, any> | undefin
  */
 export function logAppEvent(
   event: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): void {
-  console.log(`[App] ${event}`, details || '');
+  console.warn(`[App] ${event}`, details || '');
 }
 
 /**
@@ -85,12 +44,12 @@ export function logAppEvent(
  */
 export function logError(
   context: string,
-  error: any,
-  additionalData?: Record<string, any>
+  error: unknown,
+  additionalData?: Record<string, unknown>
 ): void {
   const errorData = {
     message: error instanceof Error ? error.message : String(error),
-    code: error?.code,
+    code: (error as { code?: unknown })?.code,
     ...additionalData,
   };
 

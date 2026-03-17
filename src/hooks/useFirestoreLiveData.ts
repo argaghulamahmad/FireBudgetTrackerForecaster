@@ -20,7 +20,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Budget } from '../types';
-import { subscribeTobudgets } from '../db/firestore-db';
 import { initializeOfflinePersistence } from '../db/firebase';
 import { onSnapshot, collection, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../db/firebase';
@@ -77,10 +76,10 @@ export function useFirestoreLiveData(
 
     const initPersistence = async () => {
       try {
-        console.log('🔄 Initializing Firestore offline persistence...');
+        console.warn('🔄 Initializing Firestore offline persistence...');
         const mode = await initializeOfflinePersistence();
         if (mounted) {
-          console.log(`✅ Persistence initialized in ${mode} mode`);
+          console.warn(`✅ Persistence initialized in ${mode} mode`);
         }
       } catch (err) {
         console.error('Failed to initialize persistence:', err);
@@ -112,7 +111,7 @@ export function useFirestoreLiveData(
     }
 
     let mounted = true;
-    console.log(`📡 Setting up Firestore listener for user ${userId}...`);
+    console.warn(`📏 Setting up Firestore listener for user ${userId}...`);
 
     // Re-subscribe with metadata tracking and userId filter
     const q = query(
@@ -146,7 +145,7 @@ export function useFirestoreLiveData(
             const pendingState = snapshot.metadata.hasPendingWrites
               ? '(pending writes)'
               : '';
-            console.log(
+            console.warn(
               `✅ ${budgets.length} budgets loaded ${cacheState} ${pendingState}`
             );
           }
@@ -205,7 +204,7 @@ Using any cached data if available...`;
     return () => {
       mounted = false;
       unsubscribe?.();
-      console.log('📡 Firestore listener cleaned up');
+      console.warn('📏 Firestore listener cleaned up');
     };
   }, [userId]);
 

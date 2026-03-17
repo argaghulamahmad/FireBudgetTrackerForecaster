@@ -7,7 +7,7 @@ import { getTimeMetrics, getMaxSpendToday } from '../utils/time';
 interface BudgetCardProps {
   budget: Budget;
   currency: Currency;
-  t: any;
+  t: Record<string, string>;
   onDelete: (id: string) => void;
   onEdit: (budget: Budget) => void;
   viewMode?: 'compact' | 'detailed';

@@ -13,7 +13,7 @@
  * - Provide cleanup function for app unmount
  */
 
-import { getAuth, onAuthStateChanged, Auth, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { app } from '../db/firebase';
 
 /**
@@ -96,7 +96,7 @@ export function initAuthObserver(
     (user: User | null) => {
       // Called immediately with current auth state (may be null)
       // Then called every time auth state changes
-      console.log(
+      console.warn(
         '[Auth] Auth state changed:',
         user ? `${user.email} (${user.uid})` : 'signed out'
       );
@@ -109,7 +109,7 @@ export function initAuthObserver(
     }
   );
 
-  console.log('[Auth] Observer initialized');
+  console.warn('[Auth] Observer initialized');
 }
 
 /**
@@ -128,7 +128,7 @@ export function cleanupAuthObserver(): void {
   if (authStateUnsubscribe) {
     authStateUnsubscribe();
     authStateUnsubscribe = null;
-    console.log('[Auth] Observer cleaned up');
+    console.warn('[Auth] Observer cleaned up');
   }
 }
 

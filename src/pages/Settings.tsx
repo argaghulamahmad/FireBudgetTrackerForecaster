@@ -11,7 +11,7 @@ interface SettingsProps {
   language: Language;
   viewMode: 'compact' | 'detailed';
   user: User;
-  t: any;
+  t: Record<string, string>;
   onCurrencyChange: (c: Currency) => void;
   onLanguageChange: (l: Language) => void;
   onViewModeChange: (mode: 'compact' | 'detailed') => void;

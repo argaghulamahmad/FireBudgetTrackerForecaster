@@ -4,10 +4,14 @@ import { Budget } from '../types';
 import { Currency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
 import { SearchableSelect } from './SearchableSelect';
 
+interface Translations {
+  [key: string]: string;
+}
+
 interface AddBudgetModalProps {
   isOpen: boolean;
   currency: Currency;
-  t: any;
+  t: Translations;
   onClose: () => void;
   onAdd: (budget: Omit<Budget, 'id' | 'createdAt'>) => Promise<string>;
   onEdit?: (id: string, budget: Partial<Omit<Budget, 'id' | 'createdAt'>>) => Promise<void>;
@@ -130,7 +134,7 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
             <SearchableSelect
               options={frequencyOptions}
               value={frequency}
-              onChange={(val) => setFrequency(val as any)}
+              onChange={(val) => setFrequency(val as 'Weekly' | 'Monthly' | 'Yearly')}
               placeholder={t.frequency}
               searchPlaceholder={t.search || 'Search...'}
               noOptionsText={t.noOptions || 'No options found'}
