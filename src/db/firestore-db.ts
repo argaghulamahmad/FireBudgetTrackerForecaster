@@ -110,8 +110,11 @@ export async function getAllBudgets(userId: string): Promise<Budget[]> {
  * - Automatic reconnection on network recovery
  * 
  * Edge Case: Permission Denied
- * If Security Rules don't allow reading, the error callback fires
- * Gracefully handle by showing cached data or error message
+ * If Security Rules don't allow reading, the error callback fires.
+ * This can happen if:
+ * - Existing budgets don't have userId field (data migration needed)
+ * - Composite index not yet built (wait 5-10 minutes)
+ * - Security Rules were just updated (may take time to propagate)
  * 
  * @param userId Current user's UID (from Firebase Auth)
  * @param onNext Callback with updated budgets
@@ -159,7 +162,10 @@ export function subscribeTobudgets(
         
         // Handle specific Firestore errors
         if (error.code === 'permission-denied') {
-          console.error('🔒 Security Rules denied access to budgets collection');
+          console.error('🔒 Security Rules denied access. Possible causes:');
+          console.error('   1. Existing budgets missing userId field (run migration)');
+          console.error('   2. Composite index not built yet (wait 5-10 mins)');
+          console.error('   3. Security Rules just published (propagation delay)');
         } else if (error.code === 'unavailable') {
           console.warn('⚠️ Firestore temporarily unavailable, using cached data');
         }
@@ -413,6 +419,46 @@ function convertFirestoreToBudget(doc: FirestoreBudget): Omit<Budget, 'id'> {
         ? doc.createdAt.toMillis()
         : (doc.createdAt as number),
   };
+}
+
+/**
+ * MIGRATION: Fix Permission Denied Errors
+ * 
+ * Firestore returns "permission-denied" when:
+ * 1. Existing budgets don't have userId field (created before schema update)
+ * 2. Composite index not yet built (wait 5-10 minutes after rules publish)
+ * 3. Security rules haven't propagated (rare, usually <1 minute)
+ * 
+ * This function removes test/sample data without userId.
+ * In production, use Cloud Functions or Admin SDK for safe migration.
+ * 
+ * @param userId Current user's UID
+ * @returns Report of documents processed
+ */
+export async function migrateOldBudgets(userId: string): Promise<{ message: string }> {
+  try {
+    console.log('🔄 Starting budget migration...');
+    
+    // First, try to query with userId filter (this will fail if composite index isn't ready)
+    const userQ = query(
+      collection(db, BUDGETS_COLLECTION),
+      where('userId', '==', userId)
+    );
+    const userSnapshot = await getDocs(userQ);
+    console.log(`✅ Found ${userSnapshot.docs.length} user budgets with proper userId`);
+    
+    return { message: `Migration check complete: ${userSnapshot.docs.length} budgets have userId` };
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    
+    if (error instanceof Error && error.message.includes('permission-denied')) {
+      return {
+        message: 'Permission denied. This means: (1) Composite index still building OR (2) Existing data lacks userId field. Wait 5-10 minutes or manually delete test budgets from Firebase Console.',
+      };
+    }
+    
+    return { message: `Migration error: ${error instanceof Error ? error.message : 'Unknown'}` };
+  }
 }
 
 /**

@@ -157,11 +157,23 @@ export function useFirestoreLiveData(
             
             // Handle specific errors
             if (err.code === 'permission-denied') {
-              setError(
-                new Error(
-                  'Permission denied. Check Firestore Security Rules.'
-                )
-              );
+              const message = `🔒 Permission Denied Error
+
+This usually happens when:
+1. Existing budgets lack userId field (data created before schema update)
+2. Composite index still building (wait 5-10 minutes after rules publish)
+3. Security Rules just updated (propagation delay)
+
+Quick fixes:
+• Wait 5-10 minutes for index to build
+• Clear browser cache and refresh
+• Delete old test budgets from Firebase Console
+• Verify userId field exists on all budget documents
+
+Using any cached data if available...`;
+              console.error(message);
+              setError(new Error('Permission Denied - Checking cached data...'));
+              // Don't fail completely - use cached data
             } else if (err.code === 'unavailable') {
               // Unavailable errors are non-fatal, we use cached data
               console.warn(
