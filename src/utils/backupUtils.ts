@@ -6,7 +6,12 @@
  * Features:
  * - Export: Fetch all budgets, compress to gzip, trigger download
  * - Import: Read gzip file, decompress, validate, and batch-write to Firestore
+ * - Backward compatibility: Supports both new and legacy backup formats
  * - Error handling: Validates file format and Firestore operations
+ *
+ * Supported Formats:
+ * 1. New Format: Structured backup with version, metadata, and budgets array
+ * 2. Legacy Format: Plain JSON array of budget objects (with optional "spent" field)
  */
 
 import { User } from 'firebase/auth';
@@ -24,6 +29,21 @@ interface BackupData {
   exportedAt: string;
   userEmail: string;
   budgets: Array<Omit<Budget, 'id' | 'userId'>>;
+}
+
+/**
+ * Legacy backup format - plain JSON array of budgets
+ * (older export format with "spent" field)
+ */
+interface LegacyBudgetData {
+  name: string;
+  amount: number;
+  spent?: number; // Legacy field - not used in new format
+  frequency: 'Weekly' | 'Monthly' | 'Yearly';
+  currency: 'USD' | 'IDR';
+  createdAt: number;
+  id?: string; // May or may not be present
+  excludeWeekends?: boolean;
 }
 
 /**
@@ -84,6 +104,10 @@ export async function exportBudgets(user: User): Promise<void> {
 /**
  * Import budgets from a gzip-compressed JSON file
  *
+ * Supports both new and legacy backup formats:
+ * - New format: BackupData with version, exportedAt, userEmail, budgets[]
+ * - Legacy format: Plain array of budget objects
+ *
  * @param file The backup file to import
  * @param user Current authenticated user
  * @throws Error if import fails or file is invalid
@@ -107,24 +131,43 @@ export async function importBudgets(file: File, user: User): Promise<number> {
     log.info('Decompressed gzip data');
 
     // Parse JSON
-    const backupData: BackupData = JSON.parse(decompressed);
-    log.info(`Parsed backup data - version: ${backupData.version}, exported at: ${backupData.exportedAt}`);
+    const parsedData = JSON.parse(decompressed);
 
-    // Validate structure
-    if (!Array.isArray(backupData.budgets)) {
-      throw new Error('Invalid backup file: budgets array not found');
+    let budgetsToImport: Array<Omit<Budget, 'id' | 'createdAt'> & { createdAt?: number; spent?: number }> = [];
+
+    // Detect format: new format has version property, legacy is plain array
+    if (Array.isArray(parsedData)) {
+      // Legacy format: plain array of budgets
+      log.info('Detected legacy backup format (array)');
+      budgetsToImport = parsedData.map((budget: LegacyBudgetData) => ({
+        name: budget.name,
+        amount: budget.amount,
+        frequency: budget.frequency,
+        currency: budget.currency,
+        excludeWeekends: budget.excludeWeekends || false,
+        userId, // Add current user's ID
+      }));
+    } else if (parsedData.version && Array.isArray(parsedData.budgets)) {
+      // New format: BackupData structure
+      log.info(`Detected new backup format - version: ${parsedData.version}`);
+      budgetsToImport = parsedData.budgets.map((budget: any) => ({
+        ...budget,
+        userId, // Add current user's ID
+      }));
+    } else {
+      throw new Error('Invalid backup file format: could not detect format');
     }
 
     // Import budgets
     let importedCount = 0;
-    for (const budget of backupData.budgets) {
+    for (const budget of budgetsToImport) {
       try {
-        // Remove createdAt from backup, add current userId
+        // Remove createdAt and spent from backup, add current userId
         // (addBudget will set createdAt to serverTimestamp)
-        const { createdAt: _oldCreatedAt, ...budgetData } = budget;
+        const { createdAt: _oldCreatedAt, spent: _spent, ...budgetData } = budget;
         const budgetToAdd: Omit<Budget, 'id' | 'createdAt'> = {
           ...budgetData,
-          userId, // Add current user's ID
+          userId, // Override with current user's ID
         };
 
         await addBudget(budgetToAdd);
@@ -136,7 +179,7 @@ export async function importBudgets(file: File, user: User): Promise<number> {
       }
     }
 
-    log.info(`✅ Budget import completed - imported ${importedCount}/${backupData.budgets.length} budgets`);
+    log.info(`✅ Budget import completed - imported ${importedCount}/${budgetsToImport.length} budgets`);
     return importedCount;
   } catch (error) {
     log.error('Failed to import budgets:', error);
