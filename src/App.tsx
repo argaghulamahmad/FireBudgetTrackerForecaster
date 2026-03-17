@@ -122,25 +122,22 @@ export default function App() {
   // ==================== Route Guarding ====================
   // Show loading screen while Firebase initializes
   // This prevents flashing the login page when user refreshes
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t.loading || 'Initializing...'}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Not authenticated → show login page
-  if (!user) {
-    return <Login t={t} />;
-  }
-
   return (
     <ToastProvider>
-      <BudgetProvider
+      {authLoading ? (
+        // Loading state
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t.loading || 'Initializing...'}</p>
+          </div>
+        </div>
+      ) : !user ? (
+        // Not authenticated → show login page
+        <Login t={t} />
+      ) : (
+        // Authenticated → show dashboard
+        <BudgetProvider
         budgetState={{
           budgets,
           loading: budgetLoading,
@@ -200,9 +197,10 @@ export default function App() {
           onEdit={updateBudget}
           initialData={budgetToEdit}
         />
-      </div>
-    </BudgetProvider>
-    <ToastContainer />
+        </div>
+      </BudgetProvider>
+      )}
+      <ToastContainer />
     </ToastProvider>
   );
 }

@@ -107,20 +107,51 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
             <Mail className="w-5 h-5" />
             <h2 className="text-lg font-semibold">{t.account || 'Account'}</h2>
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <p className="text-sm text-gray-600 mb-1">{t.email || 'Email'}</p>
-            <p className="font-semibold text-gray-900 mb-4 break-all">{user.email || 'N/A'}</p>
-            
-            <p className="text-sm text-gray-600 mb-1">{t.userId || 'User ID'}</p>
-            <p className="font-mono text-xs text-gray-500 break-all mb-4">{user.uid}</p>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            {/* Profile Section */}
+            <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
+              {/* Profile Picture */}
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className="w-16 h-16 rounded-full object-cover shadow-md"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                  {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
+                </div>
+              )}
 
+              {/* Name & Email */}
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-lg">
+                  {user.displayName || user.email || 'User'}
+                </h3>
+                <p className="text-sm text-gray-500">{user.email || 'N/A'}</p>
+              </div>
+            </div>
+
+            {/* User ID */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-1">{t.userId || 'User ID'}</p>
+              <p className="font-mono text-xs text-gray-500 break-all bg-gray-50 p-2 rounded">
+                {user.uid}
+              </p>
+            </div>
+
+            {/* Member Since */}
             {user.metadata?.creationTime && (
-              <>
+              <div>
                 <p className="text-sm text-gray-600 mb-1">{t.memberSince || 'Member Since'}</p>
                 <p className="font-semibold text-gray-900">
-                  {new Date(user.metadata.creationTime).toLocaleDateString()}
+                  {new Date(user.metadata.creationTime).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
                 </p>
-              </>
+              </div>
             )}
           </div>
         </section>
