@@ -19,7 +19,6 @@ import {
   deleteDoc,
   updateDoc,
   where,
-  orderBy,
   onSnapshot,
   getDocs,
   writeBatch,
@@ -76,7 +75,6 @@ export async function getAllBudgets(userId: string): Promise<Budget[]> {
   try {
     const constraints: QueryConstraint[] = [
       where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
     ];
     const q = query(
       collection(db, BUDGETS_COLLECTION),
@@ -84,11 +82,14 @@ export async function getAllBudgets(userId: string): Promise<Budget[]> {
     );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
+    const budgets = snapshot.docs.map((doc) => ({
       ...convertFirestoreToBudget(doc.data() as FirestoreBudget),
       id: doc.id,
       userId,
     }));
+
+    // Sort client-side by createdAt descending (newest first)
+    return budgets.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
   } catch (error) {
     console.error('Error fetching budgets:', error);
     throw error;
@@ -97,24 +98,24 @@ export async function getAllBudgets(userId: string): Promise<Budget[]> {
 
 /**
  * Subscribe to Real-Time Budget Updates
- * 
+ *
  * Use Case: Keep UI synchronized with Firestore (primary use case)
- * 
+ *
  * Features:
  * - Filters by userId to show only user's budgets
  * - Offline queueing: Local changes queue until reconnect
  * - hasPendingWrites: Indicates if changes are awaiting server confirmation
  * - Automatic reconnection on network recovery
- * 
+ * - Client-side sorting: Budgets sorted by createdAt (newest first) after fetch
+ *
  * Edge Case: Permission Denied
  * If Security Rules don't allow reading, the error callback fires.
  * This can happen if:
  * - Existing budgets don't have userId field (data migration needed)
- * - Composite index not yet built (wait 5-10 minutes)
  * - Security Rules were just updated (may take time to propagate)
- * 
+ *
  * @param userId Current user's UID (from Firebase Auth)
- * @param onNext Callback with updated budgets
+ * @param onNext Callback with updated budgets (sorted by creation date, newest first)
  * @param onError Callback for errors (Security Rules, network, etc.)
  * @returns Unsubscribe function to stop listening
  */
@@ -134,7 +135,6 @@ export function subscribeTobudgets(
   try {
     const constraints: QueryConstraint[] = [
       where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
     ];
     const q = query(
       collection(db, BUDGETS_COLLECTION),
@@ -151,6 +151,9 @@ export function subscribeTobudgets(
           id: doc.id,
           userId,
         }));
+
+        // Sort client-side by createdAt descending (newest first)
+        budgets.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
 
         // Metadata: Distinguish between local changes and server data
         const hasPendingWrites = snapshot.metadata.hasPendingWrites;
@@ -428,15 +431,16 @@ function convertFirestoreToBudget(doc: FirestoreBudget): Omit<Budget, 'id'> {
 
 /**
  * MIGRATION: Fix Permission Denied Errors
- * 
+ *
  * Firestore returns "permission-denied" when:
  * 1. Existing budgets don't have userId field (created before schema update)
- * 2. Composite index not yet built (wait 5-10 minutes after rules publish)
- * 3. Security rules haven't propagated (rare, usually <1 minute)
- * 
+ * 2. Security rules have been updated but not yet propagated (rare, usually <1 minute)
+ *
+ * NOTE: Composite index requirement removed - budgets are now sorted client-side
+ *
  * This function removes test/sample data without userId.
  * In production, use Cloud Functions or Admin SDK for safe migration.
- * 
+ *
  * @param userId Current user's UID
  * @returns Report of documents processed
  */

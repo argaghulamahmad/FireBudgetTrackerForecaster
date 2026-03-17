@@ -21,7 +21,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Budget } from '../types';
 import { initializeOfflinePersistence } from '../db/firebase';
-import { onSnapshot, collection, query, orderBy, where } from 'firebase/firestore';
+import { onSnapshot, collection, query, where } from 'firebase/firestore';
 import { db } from '../db/firebase';
 
 /**
@@ -119,7 +119,6 @@ export function useFirestoreLiveData(
       // Safely build query constraints to avoid null values in where clauses
       const constraints = [
         where('userId', '==', userId),
-        orderBy('createdAt', 'desc'),
       ];
 
       const q = query(collection(db, 'budgets'), ...constraints);
@@ -134,6 +133,9 @@ export function useFirestoreLiveData(
               createdAt:
                 doc.data().createdAt?.toMillis?.() || doc.data().createdAt,
             } as Budget));
+
+            // Sort client-side by createdAt descending (newest first)
+            budgets.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
 
             setData(budgets);
             setHasPendingWrites(snapshot.metadata.hasPendingWrites);
@@ -163,14 +165,13 @@ export function useFirestoreLiveData(
 
 This usually happens when:
 1. Existing budgets lack userId field (data created before schema update)
-2. Composite index still building (wait 5-10 minutes after rules publish)
-3. Security Rules just updated (propagation delay)
+2. Security Rules just updated (propagation delay)
 
 Quick fixes:
-• Wait 5-10 minutes for index to build
 • Clear browser cache and refresh
 • Delete old test budgets from Firebase Console
 • Verify userId field exists on all budget documents
+• Check Firestore Security Rules in Firebase Console
 
 Using any cached data if available...`;
                 console.error(message);

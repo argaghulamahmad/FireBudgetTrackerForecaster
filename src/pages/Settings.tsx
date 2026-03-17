@@ -3,6 +3,7 @@ import { User } from 'firebase/auth';
 import { Currency } from '../utils/currency';
 import { Language, TranslationKeys } from '../utils/i18n';
 import { useBudget } from '../context/BudgetContext';
+import { useToast } from '../context/ToastContext';
 import { Globe, DollarSign, Database, Trash2, Download, Upload, FileArchive, LayoutTemplate, LogOut, Mail } from 'lucide-react';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { signOutUser } from '../services/authActions';
@@ -21,6 +22,7 @@ interface SettingsProps {
 
 export function Settings({ currency, language, viewMode, user, t, onCurrencyChange, onLanguageChange, onViewModeChange }: SettingsProps) {
   const { loadSampleData, clearAllData } = useBudget();
+  const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isLoadSampleModalOpen, setIsLoadSampleModalOpen] = useState(false);
@@ -31,10 +33,10 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
   const handleExport = async () => {
     try {
       await exportBudgets(user);
-      alert(t.exportSuccess || 'Budget backup downloaded successfully!');
+      showToast(t.exportSuccess || 'Budget backup downloaded successfully!', 'success');
     } catch (error) {
       console.error('Export failed:', error);
-      alert(t.exportFailed || 'Failed to export budgets');
+      showToast(t.exportFailed || 'Failed to export budgets', 'error');
     }
   };
 
@@ -46,7 +48,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
     }
 
     if (!file.name.endsWith('.gz')) {
-      alert(t.invalidFileFormat || 'Please select a valid backup file (.gz)');
+      showToast(t.invalidFileFormat || 'Please select a valid backup file (.gz)', 'error');
       event.target.value = '';
       return;
     }
@@ -60,13 +62,14 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
     try {
       const importedCount = await importBudgets(importFile, user);
       setImportFile(null);
-      alert(
+      showToast(
         (t.importSuccess || 'Successfully imported') +
-        ` ${importedCount} ${importedCount === 1 ? 'budget' : 'budgets'}`
+        ` ${importedCount} ${importedCount === 1 ? 'budget' : 'budgets'}`,
+        'success'
       );
     } catch (error) {
       console.error('Import failed:', error);
-      alert(t.importFailed || 'Failed to import budgets');
+      showToast(t.importFailed || 'Failed to import budgets', 'error');
       setImportFile(null);
     }
   };
@@ -76,13 +79,15 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
     try {
       const result = await signOutUser();
       if (!result.success) {
-        alert(result.error || 'Failed to sign out');
+        showToast(result.error || 'Failed to sign out', 'error');
+      } else {
+        showToast(t.logout || 'Logged out successfully', 'success');
       }
       // onAuthStateChanged fires with user = null automatically
       // App component detects and redirects to login
       setIsSignOutModalOpen(false);
     } catch (error) {
-      alert('An unexpected error occurred while signing out');
+      showToast('An unexpected error occurred while signing out', 'error');
       console.error(error);
     } finally {
       setIsSigningOut(false);
@@ -249,9 +254,10 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
           try {
             await loadSampleData('USD');
             setIsLoadSampleModalOpen(false);
+            showToast(t.loadSampleData || 'Sample data loaded successfully', 'success');
           } catch (error) {
             console.error('Failed to load sample data:', error);
-            alert(t.loadSampleDataFailed || 'Failed to load sample data');
+            showToast(t.loadSampleDataFailed || 'Failed to load sample data', 'error');
           }
         }}
         onCancel={() => setIsLoadSampleModalOpen(false)}
@@ -268,9 +274,10 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
           try {
             await clearAllData();
             setIsClearModalOpen(false);
+            showToast(t.clearAllData || 'All data cleared successfully', 'success');
           } catch (error) {
             console.error('Failed to clear data:', error);
-            alert(t.clearDataFailed || 'Failed to clear data');
+            showToast(t.clearDataFailed || 'Failed to clear data', 'error');
           }
         }}
         onCancel={() => setIsClearModalOpen(false)}
