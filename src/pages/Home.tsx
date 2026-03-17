@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, LayoutList, LayoutGrid, ChevronDown } from 'lucide-react';
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
