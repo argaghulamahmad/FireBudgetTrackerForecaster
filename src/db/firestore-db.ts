@@ -14,6 +14,7 @@
 import {
   collection,
   doc,
+  query,
   addDoc,
   deleteDoc,
   updateDoc,

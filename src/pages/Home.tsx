@@ -49,8 +49,6 @@ export function Home({
   }, [error]);
 
   const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
-    // Trigger a page reload to retry the connection
     window.location.reload();
   };
 
