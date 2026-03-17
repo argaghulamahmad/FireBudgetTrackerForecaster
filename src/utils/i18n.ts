@@ -122,6 +122,7 @@ export const translations = {
     importBackup: 'Impor Cadangan (GZIP)',
     confirmImport: 'Apakah Anda yakin ingin mengimpor cadangan ini? Ini akan menggantikan data Anda saat ini.',
     importSuccess: 'Impor berhasil!',
+    importFailed: 'Impor gagal. Silakan periksa format file.',
     confirmLoadSampleTitle: 'Muat Data Sampel',
     confirmLoadSampleMessage: 'Ini akan menambahkan anggaran contoh untuk membantu Anda memulai.',
     editBudget: 'Edit Anggaran',
