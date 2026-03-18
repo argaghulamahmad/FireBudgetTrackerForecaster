@@ -70,8 +70,8 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
         <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">
           {t.totalHealth}
         </span>
-        <div className="bg-indigo-50 p-1.5 rounded-full">
-          <Activity className="w-4 h-4 text-indigo-600" />
+        <div className="bg-zinc-100 p-1.5 rounded-full">
+          <Activity className="w-4 h-4 text-zinc-900" />
         </div>
       </div>
 

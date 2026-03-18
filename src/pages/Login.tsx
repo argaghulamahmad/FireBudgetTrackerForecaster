@@ -29,9 +29,9 @@ export function Login({ t }: LoginProps) {
   };
 
   const features = [
-    { icon: BarChart3, label: t.budgets || 'Track recurring budgets', color: 'bg-indigo-50 text-indigo-600' },
-    { icon: Wifi,       label: t.dataManagement || 'Works offline, syncs automatically', color: 'bg-emerald-50 text-emerald-600' },
-    { icon: ShieldCheck, label: t.manageSpending || 'Your data, isolated and secure', color: 'bg-amber-50 text-amber-600' },
+    { icon: BarChart3,   label: t.budgets || 'Track recurring budgets' },
+    { icon: Wifi,        label: t.dataManagement || 'Works offline, syncs automatically' },
+    { icon: ShieldCheck, label: t.manageSpending || 'Your data, isolated and secure' },
   ];
 
   return (
@@ -52,9 +52,9 @@ export function Login({ t }: LoginProps) {
 
       {/* Feature list */}
       <div className="w-full max-w-sm space-y-3 my-10">
-        {features.map(({ icon: Icon, label, color }) => (
+        {features.map(({ icon: Icon, label }) => (
           <div key={label} className="flex items-center gap-4 bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-health-separator">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-zinc-100 text-zinc-900">
               <Icon className="w-4.5 h-4.5" />
             </div>
             <span className="text-[14px] font-medium text-health-text">{label}</span>
