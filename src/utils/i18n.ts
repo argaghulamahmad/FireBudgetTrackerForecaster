@@ -130,6 +130,8 @@ export const translations = {
     realBalance: 'Real Balance',
     updateRealBalance: 'Update real balance',
     addRealBalance: 'Add real balance',
+    statusAttentionRequired: 'Attention Required',
+    statusOnTrack: 'On Track',
   },
   id: {
     home: 'Beranda',
@@ -260,6 +262,8 @@ export const translations = {
     realBalance: 'Saldo Sebenarnya',
     updateRealBalance: 'Perbarui saldo sebenarnya',
     addRealBalance: 'Tambahkan saldo sebenarnya',
+    statusAttentionRequired: 'Butuh Perhatian',
+    statusOnTrack: 'Sesuai Target',
   }
 };
 

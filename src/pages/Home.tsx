@@ -459,7 +459,7 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
                     <section>
                       <div className="flex items-center gap-2 mb-3 px-1">
                         <div className="w-2 h-2 rounded-full bg-rose-500 flex-shrink-0" />
-                        <h3 className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">Attention Required</h3>
+                        <h3 className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">{t.statusAttentionRequired}</h3>
                         <span className="text-[10px] font-semibold text-health-tertiary ml-auto">{groupedSections.deficit.length}</span>
                       </div>
                       {groupedSections.deficit.length > 0 ? (
@@ -478,7 +478,7 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
                     <section>
                       <div className="flex items-center gap-2 mb-3 px-1">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                        <h3 className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">On Track</h3>
+                        <h3 className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">{t.statusOnTrack}</h3>
                         <span className="text-[10px] font-semibold text-health-tertiary ml-auto">{groupedSections.onTrack.length}</span>
                       </div>
                       {groupedSections.onTrack.length > 0 ? (
