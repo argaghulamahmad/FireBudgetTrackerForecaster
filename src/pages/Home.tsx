@@ -18,21 +18,13 @@ interface HomeProps {
   onEditBudget: (budget: Budget) => void;
 }
 
-export function Home({
-  currency,
-  t,
-  viewMode,
-  onViewModeChange,
-  onAddBudgetClick,
-  onEditBudget,
-}: HomeProps) {
+export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick, onEditBudget }: HomeProps) {
   const { budgets, loading, error, hasPendingWrites, isFromCache, deleteBudget, loadSampleData } = useBudget();
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [dismissedError, setDismissedError] = useState(false);
 
-  // Auto-clear dismiss flag when error changes
   useEffect(() => {
     setDismissedError(false);
   }, [error]);
@@ -47,7 +39,6 @@ export function Home({
 
   const getSortedBudgets = (budgetsToSort: Budget[]) => {
     const sorted = [...budgetsToSort];
-    
     switch (sortBy) {
       case 'name':
         sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -64,81 +55,75 @@ export function Home({
           return remainingA - remainingB;
         });
         break;
-      default:
-        break;
     }
-    
     return sorted;
   };
 
   const getSortLabel = () => {
     switch (sortBy) {
-      case 'name':
-        return t.sortByName;
-      case 'amount':
-        return t.sortByAmount;
-      case 'urgency':
-        return t.sortByUrgency;
-      default:
-        return t.sortBy;
+      case 'name': return t.sortByName;
+      case 'amount': return t.sortByAmount;
+      case 'urgency': return t.sortByUrgency;
+      default: return t.sortBy;
     }
   };
 
   const sortedBudgets = getSortedBudgets(budgets);
 
   return (
-    <div className="px-4 pt-8 pb-24 max-w-md mx-auto">
-      {/* Status Indicators */}
+    <div className="px-4 pt-10 pb-28 min-h-screen bg-health-bg">
+      {/* Sync / offline banners */}
       {hasPendingWrites && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
-          <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-          <span className="text-sm text-amber-800">{t.syncing || 'Syncing...'}</span>
+        <div className="mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+          <span className="text-[13px] text-amber-800">{t.syncing || 'Syncing...'}</span>
         </div>
       )}
 
       {isFromCache && (
-        <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center gap-2">
-          <span className="text-sm text-indigo-800">📶 {t.offline || 'Using offline data'}</span>
+        <div className="mb-3 px-3 py-2.5 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center gap-2">
+          <span className="text-[13px] text-indigo-800">📶 {t.offline || 'Using offline data'}</span>
         </div>
       )}
 
+      {/* Error recovery */}
       {shouldShowErrorRecovery && (
-        <div className="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-lg">
+        <div className="mb-4 bg-white rounded-3xl border border-rose-100 shadow-sm p-5">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+            <div className="bg-rose-50 p-2 rounded-full flex-shrink-0 mt-0.5">
+              <AlertCircle className="w-4 h-4 text-rose-500" />
+            </div>
             <div className="flex-1">
               {isPermissionError ? (
                 <>
-                  <h3 className="font-semibold text-rose-900 mb-1">🔒 Permission Denied</h3>
-                  <p className="text-sm text-rose-800 mb-3">
-                    Firestore is checking access permissions. This usually resolves in 5-10 minutes after you published the Security Rules.
+                  <p className="text-[13px] font-semibold text-health-text mb-1">🔒 Permission Denied</p>
+                  <p className="text-[12px] text-health-secondary mb-3">
+                    Firestore is checking access permissions. This usually resolves in 5–10 minutes after publishing Security Rules.
                   </p>
-                  <div className="space-y-2 text-sm text-rose-700">
-                    <p>What to try:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Wait a few minutes and try again</li>
-                      <li>Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)</li>
-                      <li>Check console (F12) for more details</li>
-                    </ul>
-                  </div>
+                  <ul className="space-y-1 text-[12px] text-health-secondary list-disc list-inside mb-3">
+                    <li>Wait a few minutes and try again</li>
+                    <li>Hard refresh: ⌘⇧R (Mac) or Ctrl⇧R (Windows)</li>
+                  </ul>
                 </>
               ) : (
                 <>
-                  <h3 className="font-semibold text-rose-900 mb-1">⚠️ Cannot Load Budgets</h3>
-                  <p className="text-sm text-rose-800 mb-3">{error.message}</p>
+                  <p className="text-[13px] font-semibold text-health-text mb-1">⚠️ Cannot Load Budgets</p>
+                  <p className="text-[12px] text-health-secondary mb-3">{error.message}</p>
                 </>
               )}
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={handleRetry}
-                  className="flex items-center gap-2 px-3 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 text-[12px] font-semibold rounded-xl transition-colors hover:bg-rose-100"
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  Retry Now
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Retry
                 </button>
                 <button
+                  type="button"
                   onClick={() => setDismissedError(true)}
-                  className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 transition-colors"
+                  className="px-3 py-1.5 bg-health-bg text-health-secondary text-[12px] font-semibold rounded-xl transition-colors hover:bg-health-separator"
                 >
                   Dismiss
                 </button>
@@ -149,173 +134,180 @@ export function Home({
       )}
 
       {error && !shouldShowErrorRecovery && (
-        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-amber-600" />
-          <span className="text-sm text-amber-800">{error.message}</span>
+        <div className="mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+          <span className="text-[13px] text-amber-800">{error.message}</span>
         </div>
       )}
 
       {loading && budgets.length === 0 ? (
-        <div className="flex items-center justify-center py-16">
+        <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="w-12 h-12 rounded-full border-2 border-gray-200 border-t-indigo-600 animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-500">{t.loadingBudgets || 'Loading budgets...'}</p>
+            <div className="w-10 h-10 rounded-full border-2 border-health-separator border-t-indigo-600 animate-spin mx-auto mb-3" />
+            <p className="text-[13px] text-health-secondary">{t.loadingBudgets || 'Loading budgets...'}</p>
           </div>
         </div>
       ) : (
         <>
-          <header className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t.budgets}</h1>
-            <p className="text-gray-500 mt-1">{t.manageSpending}</p>
+          {/* Page header */}
+          <header className="mb-6">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mb-1">
+              {t.manageSpending}
+            </p>
+            <h1 className="font-display text-[34px] font-bold text-health-text leading-tight">{t.budgets}</h1>
           </header>
 
-          {budgets && budgets.length > 0 ? (
+          {budgets.length > 0 ? (
             <>
               <SummaryCard budgets={budgets} currency={currency} t={t} viewMode={viewMode} />
-              
-              <div className="space-y-4">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-lg font-semibold text-gray-900">{t.yourCategories}</h2>
-              <div className="flex gap-2">
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSortMenu(!showSortMenu)}
-                    className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-1 hover:bg-gray-200 transition-colors"
-                  >
-                    {getSortLabel()}
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
-                  </button>
-                  {showSortMenu && (
-                    <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                      <button
-                        onClick={() => {
-                          setSortBy('name');
-                          setShowSortMenu(false);
-                        }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'name' ? 'text-indigo-600 font-semibold' : 'text-gray-900'}`}
-                      >
-                        {t.sortByName}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSortBy('amount');
-                          setShowSortMenu(false);
-                        }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'amount' ? 'text-indigo-600 font-semibold' : 'text-gray-900'}`}
-                      >
-                        {t.sortByAmount}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSortBy('urgency');
-                          setShowSortMenu(false);
-                        }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${sortBy === 'urgency' ? 'text-indigo-600 font-semibold' : 'text-gray-900'}`}
-                      >
-                        {t.sortByUrgency}
-                      </button>
-                    </div>
-                  )}
+
+              {/* Section header with controls */}
+              <div className="flex justify-between items-center mb-3 mt-2">
+                <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">
+                  {t.yourCategories}
+                </span>
+                <div className="flex items-center gap-2">
+                  {/* Sort dropdown */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowSortMenu(!showSortMenu)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 bg-white rounded-xl text-[11px] font-semibold text-health-secondary border border-health-separator hover:border-indigo-200 transition-colors"
+                    >
+                      {getSortLabel()}
+                      <ChevronDown className={`w-3 h-3 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showSortMenu && (
+                      <div className="absolute top-full right-0 mt-1.5 bg-white rounded-2xl border border-health-separator shadow-lg z-20 overflow-hidden min-w-[140px]">
+                        {(['name', 'amount', 'urgency'] as const).map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => { setSortBy(opt); setShowSortMenu(false); }}
+                            className={`block w-full text-left px-4 py-2.5 text-[13px] transition-colors ${
+                              sortBy === opt
+                                ? 'text-indigo-600 font-semibold bg-indigo-50'
+                                : 'text-health-text hover:bg-health-bg'
+                            }`}
+                          >
+                            {opt === 'name' ? t.sortByName : opt === 'amount' ? t.sortByAmount : t.sortByUrgency}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* View toggle */}
+                  <div className="flex bg-white border border-health-separator rounded-xl p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => onViewModeChange('detailed')}
+                      aria-label={t.detailedView}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        viewMode === 'detailed'
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-health-tertiary hover:text-health-secondary'
+                      }`}
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onViewModeChange('compact')}
+                      aria-label={t.compactView}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        viewMode === 'compact'
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-health-tertiary hover:text-health-secondary'
+                      }`}
+                    >
+                      <LayoutList className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex bg-gray-100 p-1 rounded-lg">
-                  <button
-                    onClick={() => onViewModeChange('detailed')}
-                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'detailed' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                    title={t.detailedView}
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => onViewModeChange('compact')}
-                    className={`p-1.5 rounded-md transition-colors ${viewMode === 'compact' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-                    title={t.compactView}
-                  >
-                    <LayoutList className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
-            </div>
-            {sortedBudgets.map(budget => (
-              <BudgetCard 
-                key={budget.id} 
-                budget={budget} 
-                currency={currency}
-                t={t}
-                onDelete={(id) => setBudgetToDelete(id)}
-                onEdit={onEditBudget}
-                viewMode={viewMode}
-              />
-            ))}
-          </div>
-        </>
-      ) : (
-        <div className="text-center py-16 px-4">
-          {error && isPermissionError && hasNoCachedData ? (
-            <>
-              <div className="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-rose-500" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">⏳ Waiting for Firestore</h2>
-              <p className="text-gray-500 mb-4">
-                The database is setting up access permissions. This usually takes 5-10 minutes.
-              </p>
-              <p className="text-sm text-gray-500 mb-8">
-                In the meantime, you can:
-              </p>
-              <div className="flex flex-col gap-3 max-w-xs mx-auto">
-                <button 
-                  onClick={handleRetry}
-                  className="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Try Again
-                </button>
-                <button
-                  onClick={() => loadSampleData('USD')}
-                  className="w-full px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
-                >
-                  Load Sample Budgets
-                </button>
-                <p className="text-xs text-gray-400 mt-2">
-                  Once permissions are granted, your data will automatically sync.
-                </p>
-              </div>
+
+              {sortedBudgets.map(budget => (
+                <BudgetCard
+                  key={budget.id}
+                  budget={budget}
+                  currency={currency}
+                  t={t}
+                  onDelete={(id) => setBudgetToDelete(id)}
+                  onEdit={onEditBudget}
+                  viewMode={viewMode}
+                />
+              ))}
             </>
           ) : (
-            <>
-              <div className="bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Plus className="w-8 h-8 text-indigo-500" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">{t.welcome}</h2>
-              <p className="text-gray-500 mb-8">{t.createFirstBudget}</p>
-              <div className="flex flex-col gap-3 max-w-xs mx-auto">
-                <button
-                  onClick={onAddBudgetClick}
-                  className="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
-                >
-                  {t.createBudget}
-                </button>
-                <button
-                  onClick={() => loadSampleData('USD')}
-                  className="w-full px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
-                >
-                  {t.loadSampleData}
-                </button>
-              </div>
-            </>
+            /* Empty state */
+            <div className="text-center py-16 px-4">
+              {error && isPermissionError && hasNoCachedData ? (
+                <>
+                  <div className="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle className="w-8 h-8 text-rose-400" />
+                  </div>
+                  <h2 className="font-display text-xl font-bold text-health-text mb-2">⏳ Waiting for Firestore</h2>
+                  <p className="text-[14px] text-health-secondary mb-8">
+                    Access permissions are being set up. This usually takes 5–10 minutes.
+                  </p>
+                  <div className="flex flex-col gap-3 max-w-xs mx-auto">
+                    <button
+                      type="button"
+                      onClick={handleRetry}
+                      className="w-full px-6 py-3.5 bg-indigo-600 text-white font-semibold rounded-2xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Try Again
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => loadSampleData('USD')}
+                      className="w-full px-6 py-3.5 bg-white border border-health-separator text-health-text font-semibold rounded-2xl hover:bg-health-bg transition-colors"
+                    >
+                      Load Sample Budgets
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Plus className="w-8 h-8 text-indigo-500" />
+                  </div>
+                  <h2 className="font-display text-xl font-bold text-health-text mb-2">{t.welcome}</h2>
+                  <p className="text-[14px] text-health-secondary mb-8">{t.createFirstBudget}</p>
+                  <div className="flex flex-col gap-3 max-w-xs mx-auto">
+                    <button
+                      type="button"
+                      onClick={onAddBudgetClick}
+                      className="w-full px-6 py-3.5 bg-indigo-600 text-white font-semibold rounded-2xl hover:bg-indigo-700 transition-colors"
+                    >
+                      {t.createBudget}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => loadSampleData('USD')}
+                      className="w-full px-6 py-3.5 bg-white border border-health-separator text-health-text font-semibold rounded-2xl hover:bg-health-bg transition-colors"
+                    >
+                      {t.loadSampleData}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      {budgets.length > 0 && (
-        <button
-          onClick={onAddBudgetClick}
-          className="fixed bottom-24 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all z-40"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      )}
-
+          {/* FAB */}
+          {budgets.length > 0 && (
+            <button
+              type="button"
+              onClick={onAddBudgetClick}
+              aria-label={t.newBudget}
+              className="fixed bottom-24 right-5 w-14 h-14 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all z-40"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
+          )}
         </>
       )}
 

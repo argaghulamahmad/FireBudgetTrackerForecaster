@@ -4,10 +4,11 @@ import { Currency } from '../utils/currency';
 import { Language, TranslationKeys } from '../utils/i18n';
 import { useBudget } from '../context/BudgetContext';
 import { useToast } from '../context/ToastContext';
-import { Globe, DollarSign, Database, Trash2, Download, Upload, FileArchive, LayoutTemplate, LogOut, Mail } from 'lucide-react';
+import { Globe, DollarSign, Database, Trash2, Download, Upload, FileArchive, LayoutTemplate, LogOut, ChevronRight } from 'lucide-react';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { signOutUser } from '../services/authActions';
 import { exportBudgets, importBudgets } from '../utils/backupUtils';
+import { cn } from '../utils/cn';
 
 interface SettingsProps {
   currency: Currency;
@@ -18,6 +19,42 @@ interface SettingsProps {
   onCurrencyChange: (c: Currency) => void;
   onLanguageChange: (l: Language) => void;
   onViewModeChange: (mode: 'compact' | 'detailed') => void;
+}
+
+function SectionLabel({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-2 px-1">
+      <Icon className="w-3.5 h-3.5 text-health-secondary" />
+      <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">{label}</span>
+    </div>
+  );
+}
+
+function OptionRow({
+  label,
+  active,
+  onClick,
+  isLast = false,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  isLast?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'w-full px-4 py-3.5 text-left flex items-center justify-between transition-colors',
+        active ? 'bg-white' : 'bg-white hover:bg-health-bg',
+        !isLast && 'border-b border-health-separator'
+      )}
+    >
+      <span className={cn('text-[15px]', active ? 'font-semibold text-indigo-600' : 'text-health-text')}>{label}</span>
+      {active && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
+    </button>
+  );
 }
 
 export function Settings({ currency, language, viewMode, user, t, onCurrencyChange, onLanguageChange, onViewModeChange }: SettingsProps) {
@@ -42,29 +79,22 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) {
-      event.target.value = '';
-      return;
-    }
-
+    if (!file) { event.target.value = ''; return; }
     if (!file.name.endsWith('.gz')) {
       showToast(t.invalidFileFormat || 'Please select a valid backup file (.gz)', 'error');
       event.target.value = '';
       return;
     }
-
     setImportFile(file);
   };
 
   const processImport = async () => {
     if (!importFile) return;
-
     try {
       const importedCount = await importBudgets(importFile, user);
       setImportFile(null);
       showToast(
-        (t.importSuccess || 'Successfully imported') +
-        ` ${importedCount} ${importedCount === 1 ? 'budget' : 'budgets'}`,
+        `${t.importSuccess || 'Successfully imported'} ${importedCount} ${importedCount === 1 ? 'budget' : 'budgets'}`,
         'success'
       );
     } catch (error) {
@@ -83,8 +113,6 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
       } else {
         showToast(t.logout || 'Logged out successfully', 'success');
       }
-      // onAuthStateChanged fires with user = null automatically
-      // App component detects and redirects to login
       setIsSignOutModalOpen(false);
     } catch (error) {
       showToast('An unexpected error occurred while signing out', 'error');
@@ -95,184 +123,125 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
   };
 
   return (
-    <div className="px-4 pt-8 pb-24 max-w-md mx-auto">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t.settings}</h1>
+    <div className="px-4 pt-10 pb-28 min-h-screen bg-health-bg">
+      {/* Page header */}
+      <header className="mb-6">
+        <p className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mb-1">
+          {t.account || 'Account'}
+        </p>
+        <h1 className="font-display text-[34px] font-bold text-health-text leading-tight">{t.settings}</h1>
       </header>
 
       <div className="space-y-6">
-        {/* Account Information Section */}
-        <section>
-          <div className="flex items-center gap-2 mb-3 text-gray-700">
-            <Mail className="w-5 h-5" />
-            <h2 className="text-lg font-semibold">{t.account || 'Account'}</h2>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            {/* Profile Section */}
-            <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-              {/* Profile Picture */}
-              {user.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt={user.displayName || 'User'}
-                  className="w-16 h-16 rounded-full object-cover shadow-md"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
-                  {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
-                </div>
-              )}
-
-              {/* Name & Email */}
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg">
-                  {user.displayName || user.email || 'User'}
-                </h3>
-                <p className="text-sm text-gray-500">{user.email || 'N/A'}</p>
-              </div>
-            </div>
-
-            {/* User ID */}
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-1">{t.userId || 'User ID'}</p>
-              <p className="font-mono text-xs text-gray-500 break-all bg-gray-50 p-2 rounded">
-                {user.uid}
-              </p>
-            </div>
-
-            {/* Member Since */}
-            {user.metadata?.creationTime && (
-              <div>
-                <p className="text-sm text-gray-600 mb-1">{t.memberSince || 'Member Since'}</p>
-                <p className="font-semibold text-gray-900">
-                  {new Date(user.metadata.creationTime).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
+        {/* Profile card */}
+        <div className="bg-white rounded-3xl border border-health-separator shadow-sm p-5">
+          <div className="flex items-center gap-4">
+            {user.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user.displayName || 'User'}
+                className="w-16 h-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
               </div>
             )}
+            <div className="flex-1 min-w-0">
+              <p className="font-display text-[17px] font-bold text-health-text truncate">
+                {user.displayName || user.email || 'User'}
+              </p>
+              <p className="text-[13px] text-health-secondary truncate">{user.email || 'N/A'}</p>
+              {user.metadata?.creationTime && (
+                <p className="text-[11px] text-health-tertiary mt-0.5">
+                  {t.memberSince || 'Member since'} {new Date(user.metadata.creationTime).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}
+                </p>
+              )}
+            </div>
           </div>
-        </section>
+          <div className="mt-4 pt-4 border-t border-health-separator">
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-health-secondary mb-1.5">{t.userId || 'User ID'}</p>
+            <p className="font-mono text-[11px] text-health-secondary break-all bg-health-bg px-3 py-2 rounded-xl">
+              {user.uid}
+            </p>
+          </div>
+        </div>
 
-        <section>
-          <div className="flex items-center gap-2 mb-3 text-gray-700">
-            <Globe className="w-5 h-5" />
-            <h2 className="text-lg font-semibold">{t.language}</h2>
+        {/* Language */}
+        <div>
+          <SectionLabel icon={Globe} label={t.language} />
+          <div className="bg-white rounded-2xl border border-health-separator shadow-sm overflow-hidden">
+            <OptionRow label={t.english} active={language === 'en'} onClick={() => onLanguageChange('en')} />
+            <OptionRow label={t.indonesian} active={language === 'id'} onClick={() => onLanguageChange('id')} isLast />
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <button 
-              onClick={() => onLanguageChange('en')}
-              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${language === 'en' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
-            >
-              {t.english}
-            </button>
-            <button 
-              onClick={() => onLanguageChange('id')}
-              className={`w-full px-4 py-4 text-left transition-colors ${language === 'id' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
-            >
-              {t.indonesian}
-            </button>
-          </div>
-        </section>
+        </div>
 
-        <section>
-          <div className="flex items-center gap-2 mb-3 text-gray-700">
-            <DollarSign className="w-5 h-5" />
-            <h2 className="text-lg font-semibold">{t.currency}</h2>
+        {/* Currency */}
+        <div>
+          <SectionLabel icon={DollarSign} label={t.currency} />
+          <div className="bg-white rounded-2xl border border-health-separator shadow-sm overflow-hidden">
+            <OptionRow label="USD — US Dollar ($)" active={currency === 'USD'} onClick={() => onCurrencyChange('USD')} />
+            <OptionRow label="IDR — Indonesian Rupiah (Rp)" active={currency === 'IDR'} onClick={() => onCurrencyChange('IDR')} isLast />
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <button 
-              onClick={() => onCurrencyChange('USD')}
-              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${currency === 'USD' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
-            >
-              USD ($)
-            </button>
-            <button 
-              onClick={() => onCurrencyChange('IDR')}
-              className={`w-full px-4 py-4 text-left transition-colors ${currency === 'IDR' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
-            >
-              IDR (Rp)
-            </button>
-          </div>
-        </section>
+        </div>
 
-        <section>
-          <div className="flex items-center gap-2 mb-3 text-gray-700">
-            <LayoutTemplate className="w-5 h-5" />
-            <h2 className="text-lg font-semibold">{t.viewMode}</h2>
+        {/* View mode */}
+        <div>
+          <SectionLabel icon={LayoutTemplate} label={t.viewMode} />
+          <div className="bg-white rounded-2xl border border-health-separator shadow-sm overflow-hidden">
+            <OptionRow label={t.detailedView} active={viewMode === 'detailed'} onClick={() => onViewModeChange('detailed')} />
+            <OptionRow label={t.compactView} active={viewMode === 'compact'} onClick={() => onViewModeChange('compact')} isLast />
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <button 
-              onClick={() => onViewModeChange('detailed')}
-              className={`w-full px-4 py-4 text-left border-b border-gray-50 transition-colors ${viewMode === 'detailed' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
-            >
-              {t.detailedView}
-            </button>
-            <button 
-              onClick={() => onViewModeChange('compact')}
-              className={`w-full px-4 py-4 text-left transition-colors ${viewMode === 'compact' ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
-            >
-              {t.compactView}
-            </button>
-          </div>
-        </section>
+        </div>
 
-        <section>
-          <div className="flex items-center gap-2 mb-3 text-gray-700">
-            <Database className="w-5 h-5" />
-            <h2 className="text-lg font-semibold">{t.dataManagement}</h2>
+        {/* Data management */}
+        <div>
+          <SectionLabel icon={Database} label={t.dataManagement} />
+          <div className="bg-white rounded-2xl border border-health-separator shadow-sm overflow-hidden">
+            {[
+              { icon: FileArchive, label: t.exportBackup, color: 'text-indigo-500', onClick: handleExport, destructive: false },
+              { icon: Upload,      label: t.importBackup, color: 'text-emerald-500', onClick: () => fileInputRef.current?.click(), destructive: false },
+              { icon: Download,    label: t.loadSampleData, color: 'text-indigo-500', onClick: () => setIsLoadSampleModalOpen(true), destructive: false },
+              { icon: Trash2,      label: t.clearAllData, color: 'text-rose-500', onClick: () => setIsClearModalOpen(true), destructive: true },
+            ].map(({ icon: Icon, label, color, onClick, destructive }, i, arr) => (
+              <button
+                key={label}
+                type="button"
+                onClick={onClick}
+                className={cn(
+                  'w-full px-4 py-3.5 flex items-center justify-between transition-colors',
+                  destructive ? 'hover:bg-rose-50' : 'hover:bg-health-bg',
+                  i < arr.length - 1 && 'border-b border-health-separator'
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-4 h-4 ${color}`} />
+                  <span className={cn('text-[15px]', destructive ? 'text-rose-500 font-medium' : 'text-health-text')}>{label}</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-health-tertiary" />
+              </button>
+            ))}
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-            <button 
-              onClick={handleExport}
-              className="w-full px-4 py-4 text-left flex items-center gap-3 border-b border-gray-50 hover:bg-gray-50 text-gray-700 transition-colors"
-            >
-              <FileArchive className="w-4 h-4 text-indigo-500" />
-              {t.exportBackup}
-            </button>
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full px-4 py-4 text-left flex items-center gap-3 border-b border-gray-50 hover:bg-gray-50 text-gray-700 transition-colors"
-            >
-              <Upload className="w-4 h-4 text-emerald-500" />
-              {t.importBackup}
-            </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleImport} 
-              accept=".gz" 
-              className="hidden" 
-            />
-            <button 
-              onClick={() => setIsLoadSampleModalOpen(true)}
-              className="w-full px-4 py-4 text-left flex items-center gap-3 border-b border-gray-50 hover:bg-gray-50 text-gray-700 transition-colors"
-            >
-              <Download className="w-4 h-4 text-indigo-500" />
-              {t.loadSampleData}
-            </button>
-            <button 
-              onClick={() => setIsClearModalOpen(true)}
-              className="w-full px-4 py-4 text-left flex items-center gap-3 hover:bg-red-50 text-red-600 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-              {t.clearAllData}
-            </button>
-          </div>
-        </section>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImport}
+            accept=".gz"
+            aria-label={t.importBackup}
+            className="hidden"
+          />
+        </div>
 
-        <section className="pt-4">
-          <button 
-            onClick={() => setIsSignOutModalOpen(true)}
-            disabled={isSigningOut}
-            className="w-full px-4 py-4 bg-white rounded-2xl border border-red-200 shadow-sm text-center font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-          >
-            <LogOut className="w-5 h-5" />
-            {isSigningOut ? t.signingOut || 'Signing out...' : (t.logout || 'Sign Out')}
-          </button>
-        </section>
+        {/* Sign out */}
+        <button
+          type="button"
+          onClick={() => setIsSignOutModalOpen(true)}
+          disabled={isSigningOut}
+          className="w-full px-4 py-4 bg-white rounded-2xl border border-health-separator shadow-sm text-center font-semibold text-rose-500 hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        >
+          <LogOut className="w-4.5 h-4.5" />
+          {isSigningOut ? (t.signingOut || 'Signing out...') : (t.logout || 'Sign Out')}
+        </button>
       </div>
 
       <ConfirmModal

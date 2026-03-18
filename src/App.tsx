@@ -16,7 +16,7 @@ import { Home } from './pages/Home';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { Currency } from './utils/currency';
-import { Language, translations, TranslationKeys } from './utils/i18n';
+import { Language, translations } from './utils/i18n';
 import { Budget } from './types';
 
 export default function App() {
@@ -126,10 +126,10 @@ export default function App() {
     <ToastProvider>
       {authLoading ? (
         // Loading state
-        <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="min-h-screen bg-health-bg flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-slate-500">{t.loading || 'Initializing...'}</p>
+            <div className="w-12 h-12 rounded-full border-2 border-health-separator border-t-indigo-600 animate-spin mx-auto mb-4" />
+            <p className="text-health-secondary text-[13px]">{t.loading || 'Initializing...'}</p>
           </div>
         </div>
       ) : !user ? (
@@ -154,8 +154,8 @@ export default function App() {
         },
       }}
     >
-      <div className="min-h-screen bg-slate-100 font-sans">
-        <div className="min-h-screen max-w-[640px] mx-auto bg-white shadow-xl relative text-slate-900 selection:bg-indigo-100 overflow-x-hidden">
+      <div className="min-h-screen bg-health-bg font-sans">
+        <div className="min-h-screen max-w-[640px] mx-auto bg-health-bg relative text-health-text selection:bg-indigo-100 overflow-x-hidden">
         {activeTab === 'home' ? (
           <Home
             currency={currency}

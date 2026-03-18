@@ -1,8 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Typography */
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  /* Apple Health system colors */
+  --color-health-bg: #F2F2F7;
+  --color-health-surface: #FFFFFF;
+  --color-health-text: #1C1C1E;
+  --color-health-secondary: #8E8E93;
+  --color-health-tertiary: #C7C7CC;
+  --color-health-separator: #E5E5EA;
+}
+
+/* Safe area padding for iOS bottom bar */
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 @keyframes toast-slide-down {
