@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, LayoutList, LayoutGrid, ChevronDown, AlertCircle, RefreshCw, Search, X } from 'lucide-react';
+import { Plus, LayoutList, LayoutGrid, AlertCircle, RefreshCw, Search, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
@@ -22,8 +22,10 @@ interface HomeProps {
 export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick, onEditBudget }: HomeProps) {
   const { budgets, loading, error, hasPendingWrites, isFromCache, deleteBudget, loadSampleData, updateBudget } = useBudget();
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
+  const [sortField, setSortField] = useState<'name' | 'amount' | 'urgency'>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
   const [dismissedError, setDismissedError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -42,12 +44,13 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
 
   const getSortedBudgets = (budgetsToSort: Budget[]) => {
     const sorted = [...budgetsToSort];
-    switch (sortBy) {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    switch (sortField) {
       case 'name':
-        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        sorted.sort((a, b) => dir * a.name.localeCompare(b.name));
         break;
       case 'amount':
-        sorted.sort((a, b) => b.amount - a.amount);
+        sorted.sort((a, b) => dir * (a.amount - b.amount));
         break;
       case 'urgency':
         sorted.sort((a, b) => {
@@ -55,21 +58,18 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
           const metricsB = getTimeMetrics(b.frequency, b.excludeWeekends);
           const remainingA = a.amount - (a.amount * metricsA.percentage) / 100;
           const remainingB = b.amount - (b.amount * metricsB.percentage) / 100;
-          return remainingA - remainingB;
+          return dir * (remainingA - remainingB);
         });
         break;
     }
     return sorted;
   };
 
-  const getSortLabel = () => {
-    switch (sortBy) {
-      case 'name': return t.sortByName;
-      case 'amount': return t.sortByAmount;
-      case 'urgency': return t.sortByUrgency;
-      default: return t.sortBy;
-    }
-  };
+  const SORT_OPTIONS = [
+    { key: 'name' as const,    label: t.sortByName,    asc: 'A → Z', desc: 'Z → A' },
+    { key: 'amount' as const,  label: t.sortByAmount,  asc: '↑ Low',  desc: '↓ High' },
+    { key: 'urgency' as const, label: t.sortByUrgency, asc: '↑ Low',  desc: '↓ High' },
+  ];
 
   const sortedBudgets = getSortedBudgets(budgets);
 
@@ -216,32 +216,64 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
                 </span>
                 <div className="flex items-center gap-2">
                   {/* Sort dropdown */}
-                  <div className="relative">
+                  <div className="relative" ref={sortMenuRef}>
                     <button
                       type="button"
-                      onClick={() => setShowSortMenu(!showSortMenu)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 bg-white rounded-xl text-[11px] font-semibold text-health-secondary border border-health-separator hover:border-indigo-200 transition-colors"
+                      onClick={() => setShowSortMenu(v => !v)}
+                      className={cn(
+                        'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border transition-colors',
+                        showSortMenu
+                          ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                          : 'bg-white text-health-secondary border-health-separator hover:border-indigo-200'
+                      )}
                     >
-                      {getSortLabel()}
-                      <ChevronDown className={`w-3 h-3 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
+                      <ArrowUpDown className="w-3 h-3" />
+                      {SORT_OPTIONS.find(o => o.key === sortField)?.label}
+                      {sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
                     </button>
                     {showSortMenu && (
-                      <div className="absolute top-full right-0 mt-1.5 bg-white rounded-2xl border border-health-separator shadow-lg z-20 overflow-hidden min-w-[140px]">
-                        {(['name', 'amount', 'urgency'] as const).map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => { setSortBy(opt); setShowSortMenu(false); }}
-                            className={`block w-full text-left px-4 py-2.5 text-[13px] transition-colors ${
-                              sortBy === opt
-                                ? 'text-indigo-600 font-semibold bg-indigo-50'
-                                : 'text-health-text hover:bg-health-bg'
-                            }`}
-                          >
-                            {opt === 'name' ? t.sortByName : opt === 'amount' ? t.sortByAmount : t.sortByUrgency}
-                          </button>
-                        ))}
-                      </div>
+                      <>
+                        {/* Backdrop */}
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setShowSortMenu(false)}
+                        />
+                        <div className="absolute top-full right-0 mt-1.5 bg-white rounded-2xl border border-health-separator shadow-xl z-20 overflow-hidden w-56">
+                          {SORT_OPTIONS.map((opt, i) => (
+                            <div
+                              key={opt.key}
+                              className={cn(
+                                'flex items-center justify-between px-4 py-2.5',
+                                i < SORT_OPTIONS.length - 1 && 'border-b border-health-separator/60'
+                              )}
+                            >
+                              <span className={cn(
+                                'text-[13px] font-medium',
+                                sortField === opt.key ? 'text-indigo-600 font-semibold' : 'text-health-text'
+                              )}>
+                                {opt.label}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                {(['asc', 'desc'] as const).map(dir => (
+                                  <button
+                                    key={dir}
+                                    type="button"
+                                    onClick={() => { setSortField(opt.key); setSortDir(dir); setShowSortMenu(false); }}
+                                    className={cn(
+                                      'px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors',
+                                      sortField === opt.key && sortDir === dir
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'bg-health-bg text-health-secondary hover:bg-indigo-50 hover:text-indigo-600'
+                                    )}
+                                  >
+                                    {dir === 'asc' ? opt.asc : opt.desc}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
 
