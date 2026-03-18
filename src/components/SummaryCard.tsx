@@ -35,7 +35,7 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
   const reconciledBudgets = budgets.filter(b => b.lastKnownBalance !== undefined);
   const hasReconciliation = reconciledBudgets.length > 0;
   const totalRealBalance = reconciledBudgets.reduce((sum, b) => sum + (b.lastKnownBalance ?? 0), 0);
-  const totalVariance = hasReconciliation ? totalRealBalance - totalForecasted : null;
+  const totalVariance = hasReconciliation ? Math.round(totalRealBalance - totalForecasted) : null;
   const isSurplus = totalVariance !== null && totalVariance >= 0;
 
   // ── Shared status colours ──────────────────────────────────────
@@ -114,12 +114,12 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
         <>
           {/* Variance is the hero when reconciliation data exists */}
           <p className={cn(
-            'font-display text-[52px] font-bold leading-none tracking-tight',
+            'font-display text-[44px] font-bold leading-tight tracking-tight mb-2',
             isSurplus ? 'text-emerald-600' : 'text-rose-500'
           )}>
             {isSurplus ? '+' : ''}{formatCurrency(totalVariance, currency)}
           </p>
-          <p className="text-[13px] text-health-secondary mt-2 mb-5">
+          <p className="text-[13px] text-health-secondary mb-5">
             {isSurplus ? 'ahead of' : 'behind'} your{' '}
             <span className="font-medium text-health-text">{formatCurrency(totalForecasted, currency)}</span>{' '}
             forecast

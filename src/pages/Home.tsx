@@ -168,13 +168,13 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
           </header>
 
           {budgets.length > 0 ? (
-            <div className="lg:flex lg:min-h-screen">
+            <div>
 
-              {/* ─── Left Sidebar ─── */}
-              <aside className="lg:w-[300px] lg:min-w-[300px] lg:sticky lg:top-0 lg:self-start lg:max-h-screen lg:overflow-y-auto lg:border-r lg:border-health-separator/50 lg:bg-white/40 lg:backdrop-blur-sm lg:py-8 lg:px-6">
+              {/* ─── Top Panel ─── */}
+              <div className="lg:sticky lg:top-0 lg:z-20 lg:bg-white/90 lg:backdrop-blur-xl lg:border-b lg:border-health-separator/50 lg:px-8 lg:pt-6 lg:pb-4">
 
-                {/* Desktop heading — hidden on mobile (mobile header is above the layout split) */}
-                <header className="hidden lg:block mb-6">
+                {/* Desktop heading */}
+                <header className="hidden lg:block mb-5">
                   <p className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mb-1">
                     {t.manageSpending}
                   </p>
@@ -183,50 +183,52 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
 
                 <SummaryCard budgets={budgets} currency={currency} t={t} viewMode={viewMode} />
 
-                {/* Search bar */}
-                <div className="relative flex items-center gap-2 mt-4 mb-2">
-                  <div className={cn(
-                    'flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full transition-all',
-                    'bg-slate-200/50 border border-transparent',
-                    searchQuery && 'bg-white border-health-separator shadow-sm'
-                  )}>
-                    <Search className="w-4 h-4 text-health-tertiary flex-shrink-0" />
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      placeholder="Search budgets…"
-                      className="flex-1 bg-transparent text-[14px] text-health-text placeholder:text-health-tertiary outline-none"
-                    />
+                {/* Search + Controls — stacked on mobile, single row on desktop */}
+                <div className="lg:flex lg:items-center lg:gap-3 lg:mt-4">
+
+                  {/* Search bar */}
+                  <div className="relative flex items-center gap-2 mt-4 mb-2 lg:mt-0 lg:mb-0 lg:flex-1">
+                    <div className={cn(
+                      'flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full transition-all',
+                      'bg-slate-200/50 border border-transparent',
+                      searchQuery && 'bg-white border-health-separator shadow-sm'
+                    )}>
+                      <Search className="w-4 h-4 text-health-tertiary flex-shrink-0" />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        placeholder="Search budgets…"
+                        className="flex-1 bg-transparent text-[14px] text-health-text placeholder:text-health-tertiary outline-none"
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          aria-label="Clear search"
+                          className="w-4 h-4 flex items-center justify-center rounded-full bg-health-tertiary/30 flex-shrink-0"
+                        >
+                          <X className="w-2.5 h-2.5 text-health-secondary" />
+                        </button>
+                      )}
+                    </div>
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        aria-label="Clear search"
-                        className="w-4 h-4 flex items-center justify-center rounded-full bg-health-tertiary/30 flex-shrink-0"
+                        className="text-[13px] font-medium text-indigo-600 flex-shrink-0"
                       >
-                        <X className="w-2.5 h-2.5 text-health-secondary" />
+                        Cancel
                       </button>
                     )}
                   </div>
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                      className="text-[13px] font-medium text-indigo-600 flex-shrink-0"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </div>
 
-                {/* Section header with controls */}
-                <div className="flex justify-between items-center mb-3 mt-4">
-                  <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">
-                    {t.yourCategories}
-                  </span>
-                  <div className="flex items-center gap-2">
+                  {/* Controls */}
+                  <div className="flex items-center gap-2 mb-3 mt-4 lg:mt-0 lg:mb-0">
+                    <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mr-auto lg:hidden">
+                      {t.yourCategories}
+                    </span>
                     {/* Sort dropdown */}
                     <div className="relative" ref={sortMenuRef}>
                       <button
@@ -314,10 +316,10 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
                     </div>
                   </div>
                 </div>
-              </aside>
+              </div>
 
-              {/* ─── Main Content ─── */}
-              <main className="flex-1 lg:p-8 lg:overflow-y-auto">
+              {/* ─── Budget Cards ─── */}
+              <main className="lg:px-8 lg:py-6">
                 {filteredBudgets.length === 0 ? (
                   <div className="text-center py-16 px-4">
                     <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
