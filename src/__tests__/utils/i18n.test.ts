@@ -33,12 +33,12 @@ describe('i18n Utilities', () => {
     });
 
     it('should have no empty translation values', () => {
-      Object.entries(translations.en).forEach(([key, value]) => {
+      Object.entries(translations.en).forEach(([_key, value]) => {
         expect(value).not.toBe('');
         expect(typeof value).toBe('string');
       });
 
-      Object.entries(translations.id).forEach(([key, value]) => {
+      Object.entries(translations.id).forEach(([_key, value]) => {
         expect(value).not.toBe('');
         expect(typeof value).toBe('string');
       });

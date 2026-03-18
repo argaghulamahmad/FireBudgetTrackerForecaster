@@ -352,7 +352,6 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBalance(); if (e.key === 'Escape') { setIsEditingBalance(false); setBalanceInput(''); } }}
                 className="w-full py-2.5 px-2 bg-transparent outline-none text-[14px] font-medium text-health-text"
                 placeholder="0.00"
-                // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
               />
             </div>

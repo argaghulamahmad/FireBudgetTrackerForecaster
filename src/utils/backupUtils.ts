@@ -70,7 +70,7 @@ export async function exportBudgets(user: User): Promise<void> {
       version: '1.0',
       exportedAt: new Date().toISOString(),
       userEmail: user.email || 'unknown',
-      budgets: budgets.map(({ id, userId, ...rest }) => rest),
+      budgets: budgets.map(({ id: _id, userId: _userId, ...rest }) => rest),
     };
 
     // Convert to JSON
@@ -150,7 +150,7 @@ export async function importBudgets(file: File, user: User): Promise<number> {
     } else if (parsedData.version && Array.isArray(parsedData.budgets)) {
       // New format: BackupData structure
       log.info(`Detected new backup format - version: ${parsedData.version}`);
-      budgetsToImport = parsedData.budgets.map((budget: any) => ({
+      budgetsToImport = (parsedData.budgets as BackupData['budgets']).map((budget) => ({
         ...budget,
         userId, // Add current user's ID
       }));

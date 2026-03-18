@@ -30,7 +30,7 @@ class Logger {
    * @param context Optional context/data
    */
   info(message: string, context?: unknown): void {
-    console.log(`[INFO] ${message}`, context);
+    console.info(`[INFO] ${message}`, context);
   }
 
   /**
