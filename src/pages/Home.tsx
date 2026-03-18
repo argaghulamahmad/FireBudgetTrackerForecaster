@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Plus, LayoutList, LayoutGrid, ChevronDown, AlertCircle, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, LayoutList, LayoutGrid, ChevronDown, AlertCircle, RefreshCw, Search, X } from 'lucide-react';
+import { cn } from '../utils/cn';
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -24,6 +25,8 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [dismissedError, setDismissedError] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setDismissedError(false);
@@ -69,6 +72,13 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
   };
 
   const sortedBudgets = getSortedBudgets(budgets);
+
+  const filteredBudgets = searchQuery.trim()
+    ? sortedBudgets.filter(b =>
+        b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.frequency.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : sortedBudgets;
 
   return (
     <div className="px-4 pt-10 pb-28 min-h-screen bg-health-bg">
@@ -161,6 +171,44 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
             <>
               <SummaryCard budgets={budgets} currency={currency} t={t} viewMode={viewMode} />
 
+              {/* Search bar */}
+              <div className="relative flex items-center gap-2 mt-4 mb-2">
+                <div className={cn(
+                  'flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full transition-all',
+                  'bg-slate-200/50 border border-transparent',
+                  searchQuery && 'bg-white border-health-separator shadow-sm'
+                )}>
+                  <Search className="w-4 h-4 text-health-tertiary flex-shrink-0" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search budgets…"
+                    className="flex-1 bg-transparent text-[14px] text-health-text placeholder:text-health-tertiary outline-none"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      aria-label="Clear search"
+                      className="w-4 h-4 flex items-center justify-center rounded-full bg-health-tertiary/30 flex-shrink-0"
+                    >
+                      <X className="w-2.5 h-2.5 text-health-secondary" />
+                    </button>
+                  )}
+                </div>
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="text-[13px] font-medium text-indigo-600 flex-shrink-0"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+
               {/* Section header with controls */}
               <div className="flex justify-between items-center mb-3 mt-2">
                 <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">
@@ -227,20 +275,32 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
                 </div>
               </div>
 
-              {sortedBudgets.map(budget => (
-                <BudgetCard
-                  key={budget.id}
-                  budget={budget}
-                  currency={currency}
-                  t={t}
-                  onDelete={(id) => setBudgetToDelete(id)}
-                  onEdit={onEditBudget}
-                  onUpdateBalance={async (id, balance) =>
-                    updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() })
-                  }
-                  viewMode={viewMode}
-                />
-              ))}
+              {filteredBudgets.length === 0 ? (
+                <div className="text-center py-16 px-4">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-7 h-7 text-slate-300" />
+                  </div>
+                  <p className="text-[16px] font-semibold text-health-text mb-1">No Budgets Found</p>
+                  <p className="text-[13px] text-health-secondary">
+                    Try a different name or frequency.
+                  </p>
+                </div>
+              ) : (
+                filteredBudgets.map(budget => (
+                  <BudgetCard
+                    key={budget.id}
+                    budget={budget}
+                    currency={currency}
+                    t={t}
+                    onDelete={(id) => setBudgetToDelete(id)}
+                    onEdit={onEditBudget}
+                    onUpdateBalance={async (id, balance) =>
+                      updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() })
+                    }
+                    viewMode={viewMode}
+                  />
+                ))
+              )}
             </>
           ) : (
             /* Empty state */

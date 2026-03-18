@@ -1,6 +1,6 @@
-import { memo, useState } from 'react';
+import { memo, useState, useRef, useEffect } from 'react';
 import { Budget } from '../types';
-import { Trash2, Clock, Pencil, CalendarDays, Plus, Check, X } from 'lucide-react';
+import { Trash2, Clock, Pencil, CalendarDays, Plus, Check, X, Wallet } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { Currency, formatCurrency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
 import { TranslationKeys } from '../utils/i18n';
@@ -36,6 +36,34 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
   const [isEditingBalance, setIsEditingBalance] = useState(false);
   const [balanceInput, setBalanceInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isQuickEditOpen, setIsQuickEditOpen] = useState(false);
+  const [quickInput, setQuickInput] = useState('');
+  const [isQuickSaving, setIsQuickSaving] = useState(false);
+  const quickInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isQuickEditOpen) {
+      setQuickInput(
+        budget.lastKnownBalance !== undefined
+          ? formatCurrencyInput(budget.lastKnownBalance.toString(), currency)
+          : ''
+      );
+      setTimeout(() => quickInputRef.current?.focus(), 50);
+    }
+  }, [isQuickEditOpen, budget.lastKnownBalance, currency]);
+
+  const handleQuickSave = async () => {
+    const parsed = parseCurrencyInput(quickInput, currency);
+    if (parsed === null || isNaN(parsed)) return;
+    setIsQuickSaving(true);
+    try {
+      await onUpdateBalance(budget.id, parsed);
+      setIsQuickEditOpen(false);
+      setQuickInput('');
+    } finally {
+      setIsQuickSaving(false);
+    }
+  };
 
   const variance =
     budget.lastKnownBalance !== undefined
@@ -85,50 +113,140 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
 
   if (viewMode === 'compact') {
     return (
-      <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-health-separator mb-2.5 group flex items-center gap-3">
-        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${statusColor}`} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline justify-between mb-1.5">
-            <span className="text-[13px] font-semibold text-health-text truncate pr-2">{budget.name}</span>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+      <div className="bg-white rounded-2xl shadow-sm border border-health-separator mb-2.5 overflow-hidden">
+        {/* Main row */}
+        <div className="px-4 py-3 flex items-center gap-3 group">
+          {/* Budget cycle status dot */}
+          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${statusColor}`} />
+
+          {/* Name + surplus/deficit indicator */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <span className="text-[13px] font-semibold text-health-text truncate">{budget.name}</span>
               {variance !== null && (
-                <span className={cn(
-                  'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-                  isSurplus ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
-                )}>
-                  {isSurplus ? '+' : ''}{formatCurrency(variance, currency)}
-                </span>
+                <div className={cn(
+                  'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                  isSurplus ? 'bg-emerald-500' : 'bg-rose-500'
+                )} />
               )}
-              <span className="font-display text-[13px] font-bold text-health-text">
-                {formatCurrency(remaining, currency)}
-              </span>
+            </div>
+            <div className="h-1.5 w-full bg-health-bg rounded-full overflow-hidden">
+              <div
+                className={cn('h-full rounded-full transition-all duration-700', statusColor)}
+                style={{ width: `${Math.min(metrics.percentage, 100)}%` }}
+              />
             </div>
           </div>
-          <div className="h-1.5 w-full bg-health-bg rounded-full overflow-hidden">
-            <div
-              className={cn('h-full rounded-full transition-all duration-700', statusColor)}
-              style={{ width: `${Math.min(metrics.percentage, 100)}%` }}
-            />
+
+          {/* Remaining + variance badge */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {variance !== null && (
+              <span className={cn(
+                'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                isSurplus ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
+              )}>
+                {isSurplus ? '+' : ''}{formatCurrency(variance, currency)}
+              </span>
+            )}
+            <span className="font-display text-[13px] font-bold text-health-text">
+              {formatCurrency(remaining, currency)}
+            </span>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-0.5 flex-shrink-0">
+            {/* Wallet — always visible */}
+            <button
+              type="button"
+              aria-label="Quick update balance"
+              onClick={() => setIsQuickEditOpen(v => !v)}
+              className={cn(
+                'p-1.5 rounded-lg transition-colors',
+                isQuickEditOpen
+                  ? 'text-indigo-600 bg-indigo-50'
+                  : 'text-health-tertiary hover:text-indigo-500 hover:bg-indigo-50'
+              )}
+            >
+              <Wallet className="w-3.5 h-3.5" />
+            </button>
+            {/* Edit + Delete on hover */}
+            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                aria-label={t.editBudget}
+                onClick={() => onEdit(budget)}
+                className="p-1.5 rounded-lg text-health-tertiary hover:text-indigo-500 hover:bg-indigo-50 transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                aria-label={t.delete}
+                onClick={() => onDelete(budget.id)}
+                className="p-1.5 rounded-lg text-health-tertiary hover:text-rose-500 hover:bg-rose-50 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
-        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
-          <button
-            type="button"
-            aria-label={t.editBudget}
-            onClick={() => onEdit(budget)}
-            className="p-1.5 rounded-lg text-health-tertiary hover:text-indigo-500 hover:bg-indigo-50 transition-colors"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            aria-label={t.delete}
-            onClick={() => onDelete(budget.id)}
-            className="p-1.5 rounded-lg text-health-tertiary hover:text-rose-500 hover:bg-rose-50 transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
+
+        {/* Inline quick-balance editor */}
+        {isQuickEditOpen && (
+          <div className="px-4 pb-3 pt-0 border-t border-health-separator/60 bg-slate-50/60">
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-health-secondary mt-2.5 mb-2">
+              Real Balance
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center bg-white border border-health-separator rounded-xl overflow-hidden focus-within:border-indigo-300 focus-within:ring-1 focus-within:ring-indigo-100 transition-all">
+                <span className="pl-3 text-[13px] text-health-secondary flex-shrink-0">
+                  {getCurrencySymbol(currency)}
+                </span>
+                <input
+                  ref={quickInputRef}
+                  type="text"
+                  inputMode="decimal"
+                  value={quickInput}
+                  onChange={e => setQuickInput(formatCurrencyInput(e.target.value, currency))}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleQuickSave();
+                    if (e.key === 'Escape') { setIsQuickEditOpen(false); setQuickInput(''); }
+                  }}
+                  placeholder="0.00"
+                  className="w-full py-2 px-2 bg-transparent outline-none text-[14px] font-medium text-health-text"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleQuickSave}
+                disabled={isQuickSaving || !quickInput}
+                aria-label="Save balance"
+                className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isQuickSaving
+                  ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <Check className="w-4 h-4" />
+                }
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsQuickEditOpen(false); setQuickInput(''); }}
+                aria-label="Cancel"
+                className="p-2 bg-health-bg text-health-secondary rounded-xl hover:bg-zinc-200 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            {variance !== null && (
+              <p className={cn(
+                'text-[11px] font-medium mt-2',
+                isSurplus ? 'text-emerald-600' : 'text-rose-500'
+              )}>
+                {isSurplus ? '▲ Surplus' : '▼ Deficit'} · {formatCurrency(Math.abs(variance), currency)} vs. forecast
+              </p>
+            )}
+          </div>
+        )}
       </div>
     );
   }
