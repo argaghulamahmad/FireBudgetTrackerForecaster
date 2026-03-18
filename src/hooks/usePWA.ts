@@ -30,7 +30,7 @@ export function usePWA(): UsePWAReturn {
   });
 
   const updateSW = useCallback(
-    (reload = true) => {
+    async (reload = true) => {
       logger.info('Triggering SW update', { reload });
       // updateServiceWorker handles the skip-waiting and page reload
       // Pass true to reload the page after updating
@@ -50,8 +50,8 @@ export function usePWA(): UsePWAReturn {
   }, []);
 
   return {
-    needRefresh,
-    offlineReady: offlineReady && !dismissedOffline,
+    needRefresh: needRefresh[0],
+    offlineReady: (offlineReady[0] ?? false) && !dismissedOffline,
     updateSW,
     dismissUpdate,
     dismissOffline,
