@@ -1,8 +1,8 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Budget } from '../types';
-import { Trash2, Clock, Pencil, CalendarDays } from 'lucide-react';
+import { Trash2, Clock, Pencil, CalendarDays, Plus, Check, X } from 'lucide-react';
 import { cn } from '../utils/cn';
-import { Currency, formatCurrency } from '../utils/currency';
+import { Currency, formatCurrency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
 import { TranslationKeys } from '../utils/i18n';
 import { getTimeMetrics, getMaxSpendToday } from '../utils/time';
 
@@ -12,15 +12,37 @@ interface BudgetCardProps {
   t: Record<TranslationKeys, string>;
   onDelete: (id: string) => void;
   onEdit: (budget: Budget) => void;
+  onUpdateBalance: (id: string, balance: number) => Promise<void>;
   viewMode?: 'compact' | 'detailed';
 }
 
-function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode = 'detailed' }: BudgetCardProps) {
+function formatTimeAgo(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
+function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBalance, viewMode = 'detailed' }: BudgetCardProps) {
   const metrics = getTimeMetrics(budget.frequency, budget.excludeWeekends);
   const idealSpent = (budget.amount * metrics.percentage) / 100;
   const remaining = budget.amount - idealSpent;
   const dailyAllowance = metrics.remainingDays > 0 ? remaining / metrics.remainingDays : remaining;
   const maxSpendToday = getMaxSpendToday(budget.amount, budget.frequency, budget.excludeWeekends);
+
+  const [isEditingBalance, setIsEditingBalance] = useState(false);
+  const [balanceInput, setBalanceInput] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const variance =
+    budget.lastKnownBalance !== undefined
+      ? budget.lastKnownBalance - remaining
+      : null;
+
+  const isSurplus = variance !== null && variance >= 0;
 
   const statusColor =
     metrics.percentage > 90 ? 'bg-rose-500' :
@@ -39,19 +61,48 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode =
     return freq;
   };
 
+  const handleSaveBalance = async () => {
+    const numericBalance = parseCurrencyInput(balanceInput, currency);
+    if (numericBalance === null || isNaN(numericBalance)) return;
+    setIsSaving(true);
+    try {
+      await onUpdateBalance(budget.id, numericBalance);
+      setIsEditingBalance(false);
+      setBalanceInput('');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditBalance = () => {
+    setBalanceInput(
+      budget.lastKnownBalance !== undefined
+        ? formatCurrencyInput(budget.lastKnownBalance.toString(), currency)
+        : ''
+    );
+    setIsEditingBalance(true);
+  };
+
   if (viewMode === 'compact') {
     return (
       <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-health-separator mb-2.5 group flex items-center gap-3">
-        {/* Status dot */}
         <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${statusColor}`} />
-
-        {/* Name + progress */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between mb-1.5">
             <span className="text-[13px] font-semibold text-health-text truncate pr-2">{budget.name}</span>
-            <span className="font-display text-[13px] font-bold text-health-text flex-shrink-0">
-              {formatCurrency(remaining, currency)}
-            </span>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {variance !== null && (
+                <span className={cn(
+                  'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                  isSurplus ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
+                )}>
+                  {isSurplus ? '+' : ''}{formatCurrency(variance, currency)}
+                </span>
+              )}
+              <span className="font-display text-[13px] font-bold text-health-text">
+                {formatCurrency(remaining, currency)}
+              </span>
+            </div>
           </div>
           <div className="h-1.5 w-full bg-health-bg rounded-full overflow-hidden">
             <div
@@ -60,8 +111,6 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode =
             />
           </div>
         </div>
-
-        {/* Actions */}
         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
           <button
             type="button"
@@ -181,6 +230,100 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, viewMode =
           {budget.excludeWeekends ? t.workdaysRemaining : t.daysRemaining}{' '}
           {t[metrics.periodName as TranslationKeys] || metrics.periodName}
         </span>
+      </div>
+
+      {/* ── Real Balance Reconciliation ── */}
+      <div className="mt-4 pt-4 border-t border-health-separator">
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-health-secondary mb-2.5">
+          Real Balance
+        </p>
+
+        {isEditingBalance ? (
+          /* Input row */
+          <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center bg-health-bg border border-health-separator rounded-xl overflow-hidden focus-within:border-indigo-300 focus-within:ring-1 focus-within:ring-indigo-100 transition-all">
+              <span className="pl-3 text-[13px] text-health-secondary flex-shrink-0">
+                {getCurrencySymbol(currency)}
+              </span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={balanceInput}
+                onChange={(e) => setBalanceInput(formatCurrencyInput(e.target.value, currency))}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBalance(); if (e.key === 'Escape') { setIsEditingBalance(false); setBalanceInput(''); } }}
+                className="w-full py-2.5 px-2 bg-transparent outline-none text-[14px] font-medium text-health-text"
+                placeholder="0.00"
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveBalance}
+              disabled={isSaving || !balanceInput}
+              aria-label="Save balance"
+              className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isSaving
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Check className="w-4 h-4" />
+              }
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsEditingBalance(false); setBalanceInput(''); }}
+              aria-label="Cancel"
+              className="p-2.5 bg-health-bg text-health-secondary rounded-xl hover:bg-zinc-200 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ) : budget.lastKnownBalance !== undefined ? (
+          /* Stored balance + variance */
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-display text-[17px] font-bold text-health-text">
+                  {formatCurrency(budget.lastKnownBalance, currency)}
+                </span>
+                {variance !== null && (
+                  <span className={cn(
+                    'text-[11px] font-bold px-2 py-0.5 rounded-full',
+                    isSurplus
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-rose-50 text-rose-600'
+                  )}>
+                    {isSurplus ? '▲ +' : '▼ '}{formatCurrency(Math.abs(variance), currency)}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-health-secondary mt-0.5">
+                {isSurplus ? 'Surplus vs. forecast' : 'Deficit vs. forecast'}
+                {budget.lastKnownBalanceAt && (
+                  <> · {formatTimeAgo(budget.lastKnownBalanceAt)}</>
+                )}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleEditBalance}
+              aria-label="Update real balance"
+              className="p-2 rounded-xl text-health-tertiary hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          /* Empty state — prompt to add */
+          <button
+            type="button"
+            onClick={() => setIsEditingBalance(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-health-separator text-[13px] text-health-secondary hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add real balance
+          </button>
+        )}
       </div>
     </div>
   );

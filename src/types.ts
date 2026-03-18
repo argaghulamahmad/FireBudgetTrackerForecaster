@@ -7,4 +7,6 @@ export interface Budget {
   currency: 'USD' | 'IDR';
   createdAt: number; // Milliseconds since epoch
   excludeWeekends?: boolean;
+  lastKnownBalance?: number;    // User-entered real balance
+  lastKnownBalanceAt?: number;  // Unix ms — when it was entered
 }

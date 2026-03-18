@@ -19,7 +19,7 @@ interface HomeProps {
 }
 
 export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick, onEditBudget }: HomeProps) {
-  const { budgets, loading, error, hasPendingWrites, isFromCache, deleteBudget, loadSampleData } = useBudget();
+  const { budgets, loading, error, hasPendingWrites, isFromCache, deleteBudget, loadSampleData, updateBudget } = useBudget();
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'amount' | 'urgency'>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -235,6 +235,9 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
                   t={t}
                   onDelete={(id) => setBudgetToDelete(id)}
                   onEdit={onEditBudget}
+                  onUpdateBalance={async (id, balance) =>
+                    updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() })
+                  }
                   viewMode={viewMode}
                 />
               ))}
