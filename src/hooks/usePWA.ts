@@ -21,16 +21,20 @@ export function usePWA(): UsePWAReturn {
     onRegisterError(error) {
       logger.error('SW registration failed', error);
     },
+    onNeedRefresh() {
+      logger.info('New SW version available');
+    },
+    onOfflineReady() {
+      logger.info('SW offline ready');
+    },
   });
 
   const updateSW = useCallback(
-    async (reload = true) => {
-      try {
-        logger.info('Triggering SW update');
-        await updateServiceWorker(reload);
-      } catch (error) {
-        logger.error('Failed to update SW', error);
-      }
+    (reload = true) => {
+      logger.info('Triggering SW update', { reload });
+      // updateServiceWorker handles the skip-waiting and page reload
+      // Pass true to reload the page after updating
+      updateServiceWorker(reload);
     },
     [updateServiceWorker]
   );

@@ -13,7 +13,8 @@ export default defineConfig(({mode}) => {
       VitePWA({
         registerType: 'prompt',
         devOptions: {
-          enabled: false,
+          enabled: process.env.VITE_PWA_DEV !== 'false',
+          suppressWarnings: true,
         },
         manifest: {
           name: 'Budget Tracker Forecaster',

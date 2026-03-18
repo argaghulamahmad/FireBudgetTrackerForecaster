@@ -30,9 +30,10 @@ export function PWAUpdateBanner({ t }: PWAUpdateBannerProps) {
     }
   }, [needRefresh]);
 
-  const handleUpdate = async () => {
-    setShowUpdateBanner(false);
-    await updateSW(true);
+  const handleUpdate = () => {
+    // updateSW handles the SW skip-waiting and page reload internally
+    // Don't hide banner immediately - let the reload happen
+    updateSW(true);
   };
 
   const handleDismiss = () => {
