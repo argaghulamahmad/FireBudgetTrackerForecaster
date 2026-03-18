@@ -169,25 +169,6 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
             >
               <Wallet className="w-3.5 h-3.5" />
             </button>
-            {/* Edit + Delete on hover */}
-            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                type="button"
-                aria-label={t.editBudget}
-                onClick={() => onEdit(budget)}
-                className="p-1.5 rounded-lg text-health-tertiary hover:text-indigo-500 hover:bg-indigo-50 transition-colors"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                aria-label={t.delete}
-                onClick={() => onDelete(budget.id)}
-                className="p-1.5 rounded-lg text-health-tertiary hover:text-rose-500 hover:bg-rose-50 transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
         </div>
 
