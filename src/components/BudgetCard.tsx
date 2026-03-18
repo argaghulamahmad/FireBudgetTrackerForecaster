@@ -276,7 +276,7 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
         {formatCurrency(remaining, currency)}
       </p>
       <p className="text-[13px] text-health-secondary mt-1.5">
-        {t.remainingBalance} · <span className="text-health-text font-medium">{formatCurrency(budget.amount, currency)}</span>
+        Of <span className="text-health-text font-medium">{formatCurrency(budget.amount, currency)}</span> total
       </p>
 
       {/* Progress bar */}
