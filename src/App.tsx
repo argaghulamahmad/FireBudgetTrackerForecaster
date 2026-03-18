@@ -47,7 +47,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'settings'>('home');
   const [isAddBudgetOpen, setIsAddBudgetOpen] = useState(false);
   const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);
-  const [currency, setCurrency] = useState<Currency>('USD');
+  const [currency, setCurrency] = useState<Currency>('IDR');
   const [language, setLanguage] = useState<Language>('en');
   const [viewMode, setViewMode] = useState<'compact' | 'detailed'>('detailed');
 
@@ -89,18 +89,36 @@ export default function App() {
   }, []);
 
   // ==================== Load User Preferences ====================
+  /**
+   * Load UI preferences from localStorage with sensible defaults:
+   * - Language: 'en' (English)
+   * - Currency: 'IDR' (Indonesian Rupiah)
+   * - View Mode: 'detailed'
+   * - Sort Order & Grouping: managed in Home.tsx
+   */
   useEffect(() => {
     const savedCurrency = localStorage.getItem('budget_currency') as Currency;
     if (savedCurrency === 'USD' || savedCurrency === 'IDR') {
       setCurrency(savedCurrency);
+    } else {
+      setCurrency('IDR');
+      localStorage.setItem('budget_currency', 'IDR');
     }
+
     const savedLanguage = localStorage.getItem('budget_language') as Language;
     if (savedLanguage === 'en' || savedLanguage === 'id') {
       setLanguage(savedLanguage);
+    } else {
+      setLanguage('en');
+      localStorage.setItem('budget_language', 'en');
     }
+
     const savedViewMode = localStorage.getItem('budget_view_mode') as 'compact' | 'detailed';
     if (savedViewMode === 'compact' || savedViewMode === 'detailed') {
       setViewMode(savedViewMode);
+    } else {
+      setViewMode('detailed');
+      localStorage.setItem('budget_view_mode', 'detailed');
     }
   }, []);
 

@@ -23,19 +23,48 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
   const { currency, viewMode, onViewModeChange } = usePreferences();
   const { budgets, loading, error, hasPendingWrites, isFromCache, deleteBudget, loadSampleData, updateBudget } = useBudget();
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
-  const [sortField, setSortField] = useState<'name' | 'amount' | 'urgency'>('name');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  // ==================== Initialize Sort Order from localStorage ====================
+  const [sortField, setSortField] = useState<'name' | 'amount' | 'urgency'>(() => {
+    const saved = localStorage.getItem('budget_sort_field') as 'name' | 'amount' | 'urgency' | null;
+    return saved ?? 'name';
+  });
+
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(() => {
+    const saved = localStorage.getItem('budget_sort_dir') as 'asc' | 'desc' | null;
+    return saved ?? 'asc';
+  });
+
+  // ==================== Initialize Grouping from localStorage ====================
+  const [groupByStatus, setGroupByStatus] = useState<boolean>(() => {
+    const saved = localStorage.getItem('budget_group_by_status');
+    return saved ? saved === 'true' : false;
+  });
+
   const [showSortMenu, setShowSortMenu] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const [dismissedError, setDismissedError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [healthFilter, setHealthFilter] = useState<'all' | 'surplus' | 'deficit'>('all');
-  const [groupByStatus, setGroupByStatus] = useState(false);
 
   useEffect(() => {
     setDismissedError(false);
   }, [error]);
+
+  // ==================== Persist Sort Order to localStorage ====================
+  useEffect(() => {
+    localStorage.setItem('budget_sort_field', sortField);
+  }, [sortField]);
+
+  useEffect(() => {
+    localStorage.setItem('budget_sort_dir', sortDir);
+  }, [sortDir]);
+
+  // ==================== Persist Grouping to localStorage ====================
+  useEffect(() => {
+    localStorage.setItem('budget_group_by_status', String(groupByStatus));
+  }, [groupByStatus]);
 
   const handleRetry = () => {
     window.location.reload();
