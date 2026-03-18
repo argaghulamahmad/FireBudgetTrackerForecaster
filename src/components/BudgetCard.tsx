@@ -1,10 +1,10 @@
 import { memo, useState, useRef, useEffect } from 'react';
 import { Budget } from '../types';
-import { Trash2, Clock, Pencil, CalendarDays, Plus, Check, X, Wallet, TrendingUp, TrendingDown } from 'lucide-react';
+import { Trash2, Pencil, CalendarDays, Plus, Check, X, Wallet, TrendingUp, TrendingDown, Target } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { Currency, formatCurrency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
 import { TranslationKeys } from '../utils/i18n';
-import { getTimeMetrics, getMaxSpendToday } from '../utils/time';
+import { getTimeMetrics } from '../utils/time';
 
 interface BudgetCardProps {
   budget: Budget;
@@ -31,7 +31,8 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
   const idealSpent = (budget.amount * metrics.percentage) / 100;
   const remaining = budget.amount - idealSpent;
   const dailyAllowance = metrics.remainingDays > 0 ? remaining / metrics.remainingDays : remaining;
-  const maxSpendToday = getMaxSpendToday(budget.amount, budget.frequency, budget.excludeWeekends);
+  const actualSpent = budget.lastKnownBalance !== undefined ? budget.amount - budget.lastKnownBalance : null;
+  const isOverspending = actualSpent !== null && actualSpent > idealSpent;
 
   const [isEditingBalance, setIsEditingBalance] = useState(false);
   const [balanceInput, setBalanceInput] = useState('');
@@ -315,16 +316,36 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
             {formatCurrency(dailyAllowance, currency)}
           </p>
         </div>
-        <div className="bg-amber-50 rounded-2xl p-3.5">
+        <div className={cn(
+          'rounded-2xl p-3.5',
+          actualSpent !== null
+            ? isOverspending ? 'bg-rose-50' : 'bg-emerald-50'
+            : 'bg-health-bg'
+        )}>
           <div className="flex items-center gap-1.5 mb-1.5">
-            <Clock className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-[10px] font-semibold tracking-wider uppercase text-amber-600">
-              {t.maxToSpendToday}
+            <Target className={cn('w-3.5 h-3.5',
+              actualSpent !== null
+                ? isOverspending ? 'text-rose-500' : 'text-emerald-500'
+                : 'text-health-secondary'
+            )} strokeWidth={2} />
+            <span className={cn('text-[10px] font-semibold tracking-wider uppercase',
+              actualSpent !== null
+                ? isOverspending ? 'text-rose-600' : 'text-emerald-600'
+                : 'text-health-secondary'
+            )}>
+              Should Have Spent
             </span>
           </div>
-          <p className="font-display text-[18px] font-bold text-amber-600 leading-none">
-            {formatCurrency(maxSpendToday, currency)}
+          <p className="font-display text-[18px] font-bold text-health-text leading-none">
+            {formatCurrency(idealSpent, currency)}
           </p>
+          {actualSpent !== null && (
+            <p className={cn('text-[11px] font-semibold mt-1.5',
+              isOverspending ? 'text-rose-500' : 'text-emerald-600'
+            )}>
+              Actual: {formatCurrency(actualSpent, currency)}
+            </p>
+          )}
         </div>
       </div>
 
