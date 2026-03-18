@@ -177,7 +177,7 @@ function BudgetCardComponent({ budget, t, onDelete, onEdit, onUpdateBalance }: B
         {isQuickEditOpen && (
           <div className="px-4 pb-3 pt-0 border-t border-health-separator/60 bg-slate-50/60">
             <p className="text-[10px] font-semibold tracking-widest uppercase text-health-secondary mt-2.5 mb-2">
-              Real Balance
+              {t.realBalance}
             </p>
             <div className="flex items-center gap-2">
               <div className="flex-1 flex items-center bg-white border border-health-separator rounded-xl overflow-hidden focus-within:border-indigo-300 focus-within:ring-1 focus-within:ring-indigo-100 transition-all">
@@ -362,7 +362,7 @@ function BudgetCardComponent({ budget, t, onDelete, onEdit, onUpdateBalance }: B
       {/* ── Real Balance Reconciliation ── */}
       <div className="mt-4 pt-4 border-t border-health-separator">
         <p className="text-[10px] font-semibold tracking-widest uppercase text-health-secondary mb-2.5">
-          Real Balance
+          {t.realBalance}
         </p>
 
         {isEditingBalance ? (
@@ -439,7 +439,7 @@ function BudgetCardComponent({ budget, t, onDelete, onEdit, onUpdateBalance }: B
             <button
               type="button"
               onClick={handleEditBalance}
-              aria-label="Update real balance"
+              aria-label={t.updateRealBalance}
               className="p-2 rounded-xl text-health-tertiary hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
             >
               <Pencil className="w-3.5 h-3.5" />
@@ -453,7 +453,7 @@ function BudgetCardComponent({ budget, t, onDelete, onEdit, onUpdateBalance }: B
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-health-separator text-[13px] text-health-secondary hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
-            Add real balance
+            {t.addRealBalance}
           </button>
         )}
       </div>

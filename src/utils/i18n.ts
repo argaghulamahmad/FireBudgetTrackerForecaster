@@ -127,6 +127,9 @@ export const translations = {
     vsForecast: 'vs. forecast',
     surplusVsForecast: 'Surplus vs. forecast',
     deficitVsForecast: 'Deficit vs. forecast',
+    realBalance: 'Real Balance',
+    updateRealBalance: 'Update real balance',
+    addRealBalance: 'Add real balance',
   },
   id: {
     home: 'Beranda',
@@ -254,6 +257,9 @@ export const translations = {
     vsForecast: 'dibanding prakiraan',
     surplusVsForecast: 'Surplus dibanding prakiraan',
     deficitVsForecast: 'Defisit dibanding prakiraan',
+    realBalance: 'Saldo Sebenarnya',
+    updateRealBalance: 'Perbarui saldo sebenarnya',
+    addRealBalance: 'Tambahkan saldo sebenarnya',
   }
 };
 
