@@ -1,0 +1,19 @@
+<svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" fill="#F2F2F7" rx="45"/>
+
+  <!-- Fire flame 1 (left) -->
+  <path d="M60 100 Q50 75 55 50 Q65 65 70 85 Q65 95 60 100 Z" fill="#4F46E5" opacity="0.8"/>
+
+  <!-- Fire flame 2 (center) -->
+  <path d="M96 80 Q80 40 85 20 Q100 45 105 75 Q102 90 96 100 Z" fill="#4F46E5"/>
+
+  <!-- Fire flame 3 (right) -->
+  <path d="M132 100 Q142 75 137 50 Q127 65 122 85 Q127 95 132 100 Z" fill="#4F46E5" opacity="0.8"/>
+
+  <!-- Fire base (glow effect) -->
+  <ellipse cx="96" cy="120" rx="35" ry="25" fill="#4F46E5" opacity="0.3"/>
+
+  <!-- Lighter inner flame -->
+  <path d="M90 95 Q85 70 87 55 Q95 70 98 90 Q95 98 90 100 Z" fill="#6366F1" opacity="0.9"/>
+</svg>

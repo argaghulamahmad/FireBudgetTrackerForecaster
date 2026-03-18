@@ -107,6 +107,10 @@ export const translations = {
     exportSuccess: 'Budget backup downloaded successfully!',
     exportFailed: 'Failed to export budgets',
     invalidFileFormat: 'Please select a valid backup file (.gz)',
+    pwaOfflineReady: 'App is ready for offline use',
+    pwaUpdateAvailable: 'Update available',
+    pwaUpdateNow: 'Update',
+    pwaDismiss: 'Dismiss',
   },
   id: {
     home: 'Beranda',
@@ -214,6 +218,10 @@ export const translations = {
     exportSuccess: 'Cadangan anggaran berhasil diunduh!',
     exportFailed: 'Gagal mengekspor anggaran',
     invalidFileFormat: 'Silakan pilih file cadangan yang valid (.gz)',
+    pwaOfflineReady: 'Aplikasi siap digunakan offline',
+    pwaUpdateAvailable: 'Pembaruan tersedia',
+    pwaUpdateNow: 'Perbarui',
+    pwaDismiss: 'Tutup',
   }
 };
 
