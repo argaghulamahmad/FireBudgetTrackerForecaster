@@ -43,7 +43,7 @@ export function Login({ t }: LoginProps) {
         </div>
 
         <h1 className="font-display text-[34px] font-bold text-health-text leading-tight mb-2">
-          Budget Forecaster
+          {t.appName}
         </h1>
         <p className="text-[16px] text-health-secondary max-w-[260px]">
           {t.signInDescription || 'Know exactly where your money goes, day by day.'}

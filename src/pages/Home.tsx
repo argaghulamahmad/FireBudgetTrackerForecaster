@@ -192,18 +192,18 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
             <div className="flex-1">
               {isPermissionError ? (
                 <>
-                  <p className="text-[13px] font-semibold text-health-text mb-1">Permission Denied</p>
+                  <p className="text-[13px] font-semibold text-health-text mb-1">{t.errorPermissionDenied}</p>
                   <p className="text-[12px] text-health-secondary mb-3">
-                    Firestore is checking access permissions. This usually resolves in 5–10 minutes after publishing Security Rules.
+                    {t.errorPermissionDeniedMessage}
                   </p>
                   <ul className="space-y-1 text-[12px] text-health-secondary list-disc list-inside mb-3">
-                    <li>Wait a few minutes and try again</li>
-                    <li>Hard refresh: ⌘⇧R (Mac) or Ctrl⇧R (Windows)</li>
+                    <li>{t.errorPermissionAction1}</li>
+                    <li>{t.errorPermissionAction2}</li>
                   </ul>
                 </>
               ) : (
                 <>
-                  <p className="text-[13px] font-semibold text-health-text mb-1">Cannot Load Budgets</p>
+                  <p className="text-[13px] font-semibold text-health-text mb-1">{t.errorCannotLoadBudgets}</p>
                   <p className="text-[12px] text-health-secondary mb-3">{error.message}</p>
                 </>
               )}
@@ -214,14 +214,14 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-600 text-[12px] font-semibold rounded-xl transition-colors hover:bg-rose-100"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  Retry
+                  {t.retry}
                 </button>
                 <button
                   type="button"
                   onClick={() => setDismissedError(true)}
                   className="px-3 py-1.5 bg-health-bg text-health-secondary text-[12px] font-semibold rounded-xl transition-colors hover:bg-health-separator"
                 >
-                  Dismiss
+                  {t.dismiss}
                 </button>
               </div>
             </div>
@@ -510,10 +510,10 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
                   </div>
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Clock className="w-5 h-5 text-rose-400 flex-shrink-0" strokeWidth={2} />
-                    <h2 className="font-display text-xl font-bold text-health-text">Waiting for Firestore</h2>
+                    <h2 className="font-display text-xl font-bold text-health-text">{t.waitingForFirestore}</h2>
                   </div>
                   <p className="text-[14px] text-health-secondary mb-8">
-                    Access permissions are being set up. This usually takes 5–10 minutes.
+                    {t.waitingForFirestoreMessage}
                   </p>
                   <div className="flex flex-col gap-3 max-w-xs mx-auto">
                     <button
@@ -522,7 +522,7 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
                       className="w-full px-6 py-3.5 bg-indigo-600 text-white font-semibold rounded-2xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
                     >
                       <RefreshCw className="w-4 h-4" />
-                      Try Again
+                      {t.tryAgain}
                     </button>
                     <button
                       type="button"
