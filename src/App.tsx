@@ -11,6 +11,7 @@ import { initAuthObserver, cleanupAuthObserver } from './services/auth';
 import { useBudgets } from './hooks/useBudgets';
 import { BudgetProvider } from './context/BudgetContext';
 import { ToastProvider } from './context/ToastContext';
+import { PreferencesProvider } from './context/PreferencesContext';
 import { AddBudgetModal } from './components/AddBudgetModal';
 import { ToastContainer } from './components/ToastContainer';
 import { BottomNav } from './components/BottomNav';
@@ -139,107 +140,106 @@ export default function App() {
         <Login t={t} />
       ) : (
         // Authenticated → show dashboard
-        <BudgetProvider
-        budgetState={{
-          budgets,
-          loading: budgetLoading,
-          error: budgetError,
-          hasPendingWrites,
-          isFromCache,
-          addBudget,
-        updateBudget,
-        deleteBudget,
-        clearAllData,
-        loadSampleData: (curr) => loadSampleData(curr),
-        refetch: async () => {
-          /* refetch handled by listener */
-        },
-      }}
-    >
-      <div className="min-h-screen bg-health-bg font-sans">
-        {/* Desktop side nav rail — hidden on mobile */}
-        <nav className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-[72px] lg:z-40 bg-white/80 backdrop-blur-xl border-r border-health-separator items-center pt-6 pb-8 gap-1">
-          <div className="w-9 h-9 bg-indigo-600 rounded-[14px] flex items-center justify-center mb-5 flex-shrink-0 shadow-sm shadow-indigo-200 select-none">
-            <Wallet className="w-5 h-5 text-white" strokeWidth={2} />
-          </div>
-          <button
-            type="button"
-            onClick={() => setActiveTab('home')}
-            className={cn(
-              'flex flex-col items-center gap-1 px-1 py-2 rounded-2xl w-[52px] transition-all',
-              activeTab === 'home'
-                ? 'bg-indigo-50 text-indigo-600'
-                : 'text-health-tertiary hover:text-health-secondary hover:bg-health-bg'
-            )}
-          >
-            <HomeIcon className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">{t.home}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('settings')}
-            className={cn(
-              'flex flex-col items-center gap-1 px-1 py-2 rounded-2xl w-[52px] transition-all',
-              activeTab === 'settings'
-                ? 'bg-indigo-50 text-indigo-600'
-                : 'text-health-tertiary hover:text-health-secondary hover:bg-health-bg'
-            )}
-          >
-            <SettingsIcon className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">{t.settings}</span>
-          </button>
-        </nav>
-
-        {/* Content area */}
-        <div className="min-h-screen max-w-[640px] mx-auto lg:max-w-none lg:ml-[72px] bg-health-bg relative text-health-text selection:bg-indigo-100 overflow-x-hidden">
-          {activeTab === 'home' ? (
-            <Home
-              currency={currency}
-              t={t}
-              viewMode={viewMode}
-              onViewModeChange={handleViewModeChange}
-              onAddBudgetClick={() => {
-                setBudgetToEdit(null);
-                setIsAddBudgetOpen(true);
-              }}
-              onEditBudget={(budget) => {
-                setBudgetToEdit(budget);
-                setIsAddBudgetOpen(true);
-              }}
-            />
-          ) : (
-            <Settings
-              currency={currency}
-              language={language}
-              viewMode={viewMode}
-              t={t}
-              user={user}
-              onCurrencyChange={handleCurrencyChange}
-              onLanguageChange={handleLanguageChange}
-              onViewModeChange={handleViewModeChange}
-            />
-          )}
-
-          {/* Bottom nav — mobile only */}
-          <div className="lg:hidden">
-            <BottomNav activeTab={activeTab} onChange={setActiveTab} t={t} />
-          </div>
-
-          <AddBudgetModal
-            isOpen={isAddBudgetOpen}
-            currency={currency}
-            t={t}
-            onClose={() => {
-              setIsAddBudgetOpen(false);
-              setBudgetToEdit(null);
+        <PreferencesProvider
+          currency={currency}
+          language={language}
+          viewMode={viewMode}
+          onCurrencyChange={handleCurrencyChange}
+          onLanguageChange={handleLanguageChange}
+          onViewModeChange={handleViewModeChange}
+        >
+          <BudgetProvider
+            budgetState={{
+              budgets,
+              loading: budgetLoading,
+              error: budgetError,
+              hasPendingWrites,
+              isFromCache,
+              addBudget,
+              updateBudget,
+              deleteBudget,
+              clearAllData,
+              loadSampleData: (curr) => loadSampleData(curr),
+              refetch: async () => {
+                /* refetch handled by listener */
+              },
             }}
-            onAdd={(budget) => addBudget({ ...budget, userId: user?.uid ?? '' })}
-            onEdit={updateBudget}
-            initialData={budgetToEdit}
-          />
-        </div>
-      </div>
-      </BudgetProvider>
+          >
+            <div className="min-h-screen bg-health-bg font-sans">
+              {/* Desktop side nav rail — hidden on mobile */}
+              <nav className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-[72px] lg:z-40 bg-white/80 backdrop-blur-xl border-r border-health-separator items-center pt-6 pb-8 gap-1">
+                <div className="w-9 h-9 bg-indigo-600 rounded-[14px] flex items-center justify-center mb-5 flex-shrink-0 shadow-sm shadow-indigo-200 select-none">
+                  <Wallet className="w-5 h-5 text-white" strokeWidth={2} />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('home')}
+                  className={cn(
+                    'flex flex-col items-center gap-1 px-1 py-2 rounded-2xl w-[52px] transition-all',
+                    activeTab === 'home'
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-health-tertiary hover:text-health-secondary hover:bg-health-bg'
+                  )}
+                >
+                  <HomeIcon className="w-5 h-5" />
+                  <span className="text-[9px] font-semibold">{t.home}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('settings')}
+                  className={cn(
+                    'flex flex-col items-center gap-1 px-1 py-2 rounded-2xl w-[52px] transition-all',
+                    activeTab === 'settings'
+                      ? 'bg-indigo-50 text-indigo-600'
+                      : 'text-health-tertiary hover:text-health-secondary hover:bg-health-bg'
+                  )}
+                >
+                  <SettingsIcon className="w-5 h-5" />
+                  <span className="text-[9px] font-semibold">{t.settings}</span>
+                </button>
+              </nav>
+
+              {/* Content area */}
+              <div className="min-h-screen max-w-[640px] mx-auto lg:max-w-none lg:ml-[72px] bg-health-bg relative text-health-text selection:bg-indigo-100 overflow-x-hidden">
+                {activeTab === 'home' ? (
+                  <Home
+                    t={t}
+                    onAddBudgetClick={() => {
+                      setBudgetToEdit(null);
+                      setIsAddBudgetOpen(true);
+                    }}
+                    onEditBudget={(budget) => {
+                      setBudgetToEdit(budget);
+                      setIsAddBudgetOpen(true);
+                    }}
+                  />
+                ) : (
+                  <Settings
+                    t={t}
+                    user={user}
+                  />
+                )}
+
+                {/* Bottom nav — mobile only */}
+                <div className="lg:hidden">
+                  <BottomNav activeTab={activeTab} onChange={setActiveTab} t={t} />
+                </div>
+
+                <AddBudgetModal
+                  isOpen={isAddBudgetOpen}
+                  t={t}
+                  onClose={() => {
+                    setIsAddBudgetOpen(false);
+                    setBudgetToEdit(null);
+                  }}
+                  onAdd={(budget) => addBudget({ ...budget, userId: user?.uid ?? '' })}
+                  onEdit={updateBudget}
+                  initialData={budgetToEdit}
+                />
+              </div>
+            </div>
+          </BudgetProvider>
+        </PreferencesProvider>
       )}
       <ToastContainer />
     </ToastProvider>

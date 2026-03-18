@@ -21,6 +21,9 @@ import {
   loadSampleBudgets,
 } from '../db/firestore-db';
 import { useFirestoreLiveData } from './useFirestoreLiveData';
+import { getLogger } from '../utils/logger';
+
+const logger = getLogger('useBudgets');
 
 /**
  * useBudgets Hook Return Type
@@ -71,7 +74,7 @@ export function useBudgets(userId: string | null): UseBudgetsReturn {
         return id;
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
-        console.error('Failed to add budget:', error);
+        logger.error('Failed to add budget', error);
         throw error;
       }
     },
@@ -81,7 +84,7 @@ export function useBudgets(userId: string | null): UseBudgetsReturn {
         await firestoreUpdate(id, updates);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
-        console.error('Failed to update budget:', error);
+        logger.error('Failed to update budget', error);
         throw error;
       }
     },
@@ -91,7 +94,7 @@ export function useBudgets(userId: string | null): UseBudgetsReturn {
         await firestoreDelete(id);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
-        console.error('Failed to delete budget:', error);
+        logger.error('Failed to delete budget', error);
         throw error;
       }
     },
@@ -102,7 +105,7 @@ export function useBudgets(userId: string | null): UseBudgetsReturn {
         await clearAllBudgets(userId);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
-        console.error('Failed to clear all data:', error);
+        logger.error('Failed to clear all data', error);
         throw error;
       }
     },
@@ -114,7 +117,7 @@ export function useBudgets(userId: string | null): UseBudgetsReturn {
         await loadSampleBudgets(userId, currency);
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
-        console.error('Failed to load sample data:', error);
+        logger.error('Failed to load sample data', error);
         throw error;
       }
     },

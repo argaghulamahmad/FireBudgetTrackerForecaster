@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Budget } from '../types';
 import { Activity, CalendarDays, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { cn } from '../utils/cn';
@@ -14,29 +14,36 @@ interface SummaryCardProps {
 }
 
 function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: SummaryCardProps) {
-  // ── Forecast calculations ──────────────────────────────────────
-  let totalAmount = 0;
-  let totalIdealSpent = 0;
-  let totalDailyAllowance = 0;
+  // ── Memoized calculations ──────────────────────────────────────
+  const { totalAmount, totalIdealSpent, totalDailyAllowance, totalForecasted, percentage } = useMemo(() => {
+    let totalAmount = 0;
+    let totalIdealSpent = 0;
+    let totalDailyAllowance = 0;
 
-  budgets.forEach(b => {
-    const metrics = getTimeMetrics(b.frequency, b.excludeWeekends);
-    totalAmount += b.amount;
-    const idealSpent = (b.amount * metrics.percentage) / 100;
-    totalIdealSpent += idealSpent;
-    const remaining = b.amount - idealSpent;
-    totalDailyAllowance += metrics.remainingDays > 0 ? remaining / metrics.remainingDays : remaining;
-  });
+    budgets.forEach(b => {
+      const metrics = getTimeMetrics(b.frequency, b.excludeWeekends);
+      totalAmount += b.amount;
+      const idealSpent = (b.amount * metrics.percentage) / 100;
+      totalIdealSpent += idealSpent;
+      const remaining = b.amount - idealSpent;
+      totalDailyAllowance += metrics.remainingDays > 0 ? remaining / metrics.remainingDays : remaining;
+    });
 
-  const totalForecasted = totalAmount - totalIdealSpent;
-  const percentage = totalAmount > 0 ? (totalIdealSpent / totalAmount) * 100 : 0;
+    const totalForecasted = totalAmount - totalIdealSpent;
+    const percentage = totalAmount > 0 ? (totalIdealSpent / totalAmount) * 100 : 0;
+
+    return { totalAmount, totalIdealSpent, totalDailyAllowance, totalForecasted, percentage };
+  }, [budgets]);
 
   // ── Reconciliation calculations ────────────────────────────────
-  const reconciledBudgets = budgets.filter(b => b.lastKnownBalance !== undefined);
-  const hasReconciliation = reconciledBudgets.length > 0;
-  const totalRealBalance = reconciledBudgets.reduce((sum, b) => sum + (b.lastKnownBalance ?? 0), 0);
-  const totalVariance = hasReconciliation ? Math.round(totalRealBalance - totalForecasted) : null;
-  const isSurplus = totalVariance !== null && totalVariance >= 0;
+  const { reconciledBudgets, hasReconciliation, totalRealBalance, totalVariance, isSurplus } = useMemo(() => {
+    const reconciledBudgets = budgets.filter(b => b.lastKnownBalance !== undefined);
+    const hasReconciliation = reconciledBudgets.length > 0;
+    const totalRealBalance = reconciledBudgets.reduce((sum, b) => sum + (b.lastKnownBalance ?? 0), 0);
+    const totalVariance = hasReconciliation ? Math.round(totalRealBalance - totalForecasted) : null;
+    const isSurplus = totalVariance !== null && totalVariance >= 0;
+    return { reconciledBudgets, hasReconciliation, totalRealBalance, totalVariance, isSurplus };
+  }, [budgets, totalForecasted]);
 
   // ── Shared status colours ──────────────────────────────────────
   const progressColor =

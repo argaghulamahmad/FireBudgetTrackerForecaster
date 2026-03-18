@@ -20,6 +20,9 @@ import {
   GoogleAuthProvider,
 } from 'firebase/auth';
 import { auth } from './auth';
+import { getLogger } from '../utils/logger';
+
+const logger = getLogger('authActions');
 
 /**
  * ============================================================================
@@ -60,15 +63,15 @@ export async function signInWithEmail(
       return { success: false, error: 'Password is required' };
     }
 
-    console.warn('[Auth] Signing in with email:', email);
+    logger.warn(`Signing in with email: ${email}`);
 
     const result = await signInWithEmailAndPassword(auth, email, password);
 
-    console.warn('[Auth] Sign-in successful:', result.user.email);
+    logger.warn(`Sign-in successful: ${result.user.email}`);
     return { success: true };
   } catch (error) {
     const mappedError = mapAuthError(error);
-    console.error('[Auth] Sign-in failed:', mappedError);
+    logger.error(`Sign-in failed: ${mappedError}`);
     return { success: false, error: mappedError };
   }
 }
@@ -106,18 +109,18 @@ export async function signUpWithEmail(
       return { success: false, error: 'Password must be at least 6 characters' };
     }
 
-    console.warn('[Auth] Creating new user:', email);
+    logger.warn(`Creating new user: ${email}`);
 
     const result = await createUserWithEmailAndPassword(auth, email, password);
 
-    console.warn('[Auth] Sign-up successful:', result.user.email);
+    logger.warn(`Sign-up successful: ${result.user.email}`);
     return {
       success: true,
       uid: result.user.uid,
     };
   } catch (error) {
     const mappedError = mapAuthError(error);
-    console.error('[Auth] Sign-up failed:', mappedError);
+    logger.error(`Sign-up failed: ${mappedError}`);
     return { success: false, error: mappedError };
   }
 }
@@ -165,16 +168,16 @@ function configureGoogleProvider(): void {
  */
 export async function signInWithGoogle(): Promise<{ success: boolean; error?: string }> {
   try {
-    console.warn('[Auth] Initiating Google OAuth sign-in');
+    logger.warn('Initiating Google OAuth sign-in');
     configureGoogleProvider();
 
     const result = await signInWithPopup(auth, googleProvider);
 
-    console.warn('[Auth] Google sign-in successful:', result.user.email);
+    logger.warn(`Google sign-in successful: ${result.user.email}`);
     return { success: true };
   } catch (error: unknown) {
     const mappedError = mapAuthError(error);
-    console.error('[Auth] Google sign-in failed:', mappedError);
+    logger.error(`Google sign-in failed: ${mappedError}`);
     return { success: false, error: mappedError };
   }
 }
@@ -205,15 +208,15 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: st
 export async function signOutUser(): Promise<{ success: boolean; error?: string }> {
   try {
     const email = auth.currentUser?.email;
-    console.warn('[Auth] Signing out user:', email);
+    logger.warn(`Signing out user: ${email}`);
 
     await signOut(auth);
 
-    console.warn('[Auth] Sign-out successful');
+    logger.warn('Sign-out successful');
     return { success: true };
   } catch (error) {
     const mappedError = mapAuthError(error);
-    console.error('[Auth] Sign-out failed:', mappedError);
+    logger.error(`Sign-out failed: ${mappedError}`);
     return { success: false, error: mappedError };
   }
 }
@@ -312,7 +315,7 @@ export async function getIdToken(forceRefresh: boolean = false): Promise<string 
     const token = await auth.currentUser.getIdToken(forceRefresh);
     return token;
   } catch (error) {
-    console.error('[Auth] Failed to get ID token:', error);
+    logger.error('Failed to get ID token', error);
     return null;
   }
 }

@@ -2,18 +2,17 @@ import { memo, useState, useRef, useEffect } from 'react';
 import { Budget } from '../types';
 import { Trash2, Pencil, CalendarDays, Plus, Check, X, Wallet, TrendingUp, TrendingDown, Target } from 'lucide-react';
 import { cn } from '../utils/cn';
-import { Currency, formatCurrency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
+import { formatCurrency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
 import { TranslationKeys } from '../utils/i18n';
 import { getTimeMetrics } from '../utils/time';
+import { usePreferences } from '../context/PreferencesContext';
 
 interface BudgetCardProps {
   budget: Budget;
-  currency: Currency;
   t: Record<TranslationKeys, string>;
   onDelete: (id: string) => void;
   onEdit: (budget: Budget) => void;
   onUpdateBalance: (id: string, balance: number) => Promise<void>;
-  viewMode?: 'compact' | 'detailed';
 }
 
 function formatTimeAgo(timestamp: number): string {
@@ -26,7 +25,8 @@ function formatTimeAgo(timestamp: number): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBalance, viewMode = 'detailed' }: BudgetCardProps) {
+function BudgetCardComponent({ budget, t, onDelete, onEdit, onUpdateBalance }: BudgetCardProps) {
+  const { currency, viewMode } = usePreferences();
   const metrics = getTimeMetrics(budget.frequency, budget.excludeWeekends);
   const idealSpent = (budget.amount * metrics.percentage) / 100;
   const remaining = budget.amount - idealSpent;

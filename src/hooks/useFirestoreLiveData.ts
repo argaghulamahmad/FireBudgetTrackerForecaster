@@ -23,6 +23,9 @@ import { Budget } from '../types';
 import { initializeOfflinePersistence } from '../db/firebase';
 import { onSnapshot, collection, query, where } from 'firebase/firestore';
 import { db } from '../db/firebase';
+import { getLogger } from '../utils/logger';
+
+const logger = getLogger('useFirestoreLiveData');
 
 /**
  * Firestore Live Data Hook State
@@ -76,13 +79,13 @@ export function useFirestoreLiveData(
 
     const initPersistence = async () => {
       try {
-        console.warn('🔄 Initializing Firestore offline persistence...');
+        logger.warn('Initializing Firestore offline persistence...');
         const status = await initializeOfflinePersistence();
         if (mounted) {
-          console.warn(`✅ Persistence initialized: ${status}`);
+          logger.warn(`Persistence initialized: ${status}`);
         }
       } catch (err) {
-        console.error('Failed to initialize persistence:', err);
+        logger.error('Failed to initialize persistence', err);
         if (mounted) {
           setError(
             err instanceof Error
@@ -106,12 +109,12 @@ export function useFirestoreLiveData(
     if (!userId) {
       setData([]);
       setLoading(false);
-      console.warn('No userId provided, skipping budget subscription');
+      logger.warn('No userId provided, skipping budget subscription');
       return;
     }
 
     let mounted = true;
-    console.warn(`📏 Setting up Firestore listener for user ${userId}...`);
+    logger.warn(`Setting up Firestore listener for user ${userId}...`);
 
     let unsubscribe = () => {};
 
@@ -148,20 +151,20 @@ export function useFirestoreLiveData(
             const pendingState = snapshot.metadata.hasPendingWrites
               ? '(pending writes)'
               : '';
-            console.warn(
-              `✅ ${budgets.length} budgets loaded ${cacheState} ${pendingState}`
+            logger.warn(
+              `${budgets.length} budgets loaded ${cacheState} ${pendingState}`
             );
           }
         },
         (err: unknown) => {
           if (mounted) {
-            console.error('❌ Firestore listener error:', err);
+            logger.error('Firestore listener error', err);
 
             // Handle specific errors
             if (err && typeof err === 'object' && 'code' in err) {
               const firebaseErr = err as { code: string; message?: string };
               if (firebaseErr.code === 'permission-denied') {
-                const message = `🔒 Permission Denied Error
+                const message = `Permission Denied Error
 
 This usually happens when:
 1. Existing budgets lack userId field (data created before schema update)
@@ -174,13 +177,13 @@ Quick fixes:
 • Check Firestore Security Rules in Firebase Console
 
 Using any cached data if available...`;
-                console.error(message);
+                logger.error(message);
                 setError(new Error('Permission Denied - Checking cached data...'));
                 // Don't fail completely - use cached data
               } else if (firebaseErr.code === 'unavailable') {
                 // Unavailable errors are non-fatal, we use cached data
-                console.warn(
-                  '⚠️ Firestore unavailable, using cached data if available'
+                logger.warn(
+                  'Firestore unavailable, using cached data if available'
                 );
                 setError(null);
               } else {
@@ -202,7 +205,7 @@ Using any cached data if available...`;
       );
     } catch (err) {
       if (mounted) {
-        console.error('Error setting up listener:', err);
+        logger.error('Error setting up listener', err);
         setError(
           err instanceof Error ? err : new Error('Failed to setup listener')
         );
@@ -213,14 +216,14 @@ Using any cached data if available...`;
     return () => {
       mounted = false;
       unsubscribe?.();
-      console.warn('📏 Firestore listener cleaned up');
+      logger.warn('Firestore listener cleaned up');
     };
   }, [userId]);
 
   // Refetch callback - re-initialize listener by clearing and re-subscribing
   const refetch = useCallback(async () => {
     if (!userId) {
-      console.warn('Cannot refetch without userId');
+      logger.warn('Cannot refetch without userId');
       return;
     }
     setLoading(true);

@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Budget } from '../types';
-import { Currency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
+import { getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
 import { TranslationKeys } from '../utils/i18n';
 import { SearchableSelect } from './SearchableSelect';
+import { getLogger } from '../utils/logger';
+import { useToast } from '../context/ToastContext';
+import { usePreferences } from '../context/PreferencesContext';
+
+const logger = getLogger('AddBudgetModal');
 
 interface AddBudgetModalProps {
   isOpen: boolean;
-  currency: Currency;
   t: Record<TranslationKeys, string>;
   onClose: () => void;
   onAdd: (budget: Omit<Budget, 'id' | 'createdAt' | 'userId'>) => Promise<string>;
@@ -15,7 +19,9 @@ interface AddBudgetModalProps {
   initialData?: Budget | null;
 }
 
-export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, initialData }: AddBudgetModalProps) {
+export function AddBudgetModal({ isOpen, t, onClose, onAdd, onEdit, initialData }: AddBudgetModalProps) {
+  const { showToast } = useToast();
+  const { currency } = usePreferences();
   const [name, setName] = useState('');
   const [displayAmount, setDisplayAmount] = useState('');
   const [frequency, setFrequency] = useState<'Weekly' | 'Monthly' | 'Yearly'>('Monthly');
@@ -47,7 +53,7 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
     e.preventDefault();
     const numericAmount = parseCurrencyInput(displayAmount, currency);
     if (!name || !numericAmount) return;
-    
+
     try {
       setIsSubmitting(true);
       if (initialData && onEdit) {
@@ -58,6 +64,7 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
           currency,
           excludeWeekends,
         });
+        showToast(t.saveChanges || 'Budget updated successfully', 'success');
       } else {
         await onAdd({
           name,
@@ -66,16 +73,18 @@ export function AddBudgetModal({ isOpen, currency, t, onClose, onAdd, onEdit, in
           currency,
           excludeWeekends,
         });
+        showToast('Budget created successfully', 'success');
       }
-      
+
       setName('');
       setDisplayAmount('');
       setFrequency('Monthly');
       setExcludeWeekends(false);
       onClose();
     } catch (error) {
-      console.error('Error saving budget:', error);
-      // Error handling could be enhanced with a toast notification
+      const errorMsg = error instanceof Error ? error.message : 'Failed to save budget';
+      logger.error('Error saving budget', error);
+      showToast(errorMsg, 'error');
     } finally {
       setIsSubmitting(false);
     }

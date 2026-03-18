@@ -29,6 +29,9 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Budget } from '../types';
+import { getLogger } from '../utils/logger';
+
+const logger = getLogger('firestore-db');
 
 /**
  * Firestore Collection Name
@@ -91,7 +94,7 @@ export async function getAllBudgets(userId: string): Promise<Budget[]> {
     // Sort client-side by createdAt descending (newest first)
     return budgets.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
   } catch (error) {
-    console.error('Error fetching budgets:', error);
+    logger.error('Error fetching budgets', error);
     throw error;
   }
 }
@@ -125,7 +128,7 @@ export function subscribeTobudgets(
   onError?: (error: Error) => void
 ): Unsubscribe {
   if (!userId) {
-    console.error('subscribeTobudgets: userId is required');
+    logger.error('subscribeTobudgets: userId is required');
     if (onError) {
       onError(new Error('userId is required to subscribe to budgets'));
     }
@@ -160,22 +163,22 @@ export function subscribeTobudgets(
         const isFromCache = snapshot.metadata.fromCache;
 
         // Log for debugging
-        console.warn(`📈 Budgets updated (pending: ${hasPendingWrites}, cache: ${isFromCache})`);
+        logger.warn(`Budgets updated (pending: ${hasPendingWrites}, cache: ${isFromCache})`);
 
         // Invoke callback
         onNext(budgets);
       },
       (error) => {
-        console.error('❌ Error listening to budgets:', error);
+        logger.error('Error listening to budgets', error);
         
         // Handle specific Firestore errors
         if (error.code === 'permission-denied') {
-          console.error('🔒 Security Rules denied access. Possible causes:');
-          console.error('   1. Existing budgets missing userId field (run migration)');
-          console.error('   2. Composite index not built yet (wait 5-10 mins)');
-          console.error('   3. Security Rules just published (propagation delay)');
+          logger.error('Security Rules denied access. Possible causes:');
+          logger.error('   1. Existing budgets missing userId field (run migration)');
+          logger.error('   2. Composite index not built yet (wait 5-10 mins)');
+          logger.error('   3. Security Rules just published (propagation delay)');
         } else if (error.code === 'unavailable') {
-          console.warn('⚠️ Firestore temporarily unavailable, using cached data');
+          logger.warn('Firestore temporarily unavailable, using cached data');
         }
 
         if (onError) {
@@ -186,7 +189,7 @@ export function subscribeTobudgets(
 
     return unsubscribe;
   } catch (error) {
-    console.error('Error subscribing to budgets:', error);
+    logger.error('Error subscribing to budgets', error);
     if (onError && error instanceof Error) {
       onError(error);
     }
@@ -224,10 +227,10 @@ export async function addBudget(
       }
     );
 
-    console.warn('✅ Budget added:', docRef.id);
+    logger.warn('Budget added:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error('Error adding budget:', error);
+    logger.error('Error adding budget', error);
     throw error;
   }
 }
@@ -250,9 +253,9 @@ export async function updateBudget(
 ): Promise<void> {
   try {
     await updateDoc(doc(db, BUDGETS_COLLECTION, id), updates);
-    console.warn('✅ Budget updated:', id);
+    logger.warn('Budget updated:', id);
   } catch (error) {
-    console.error('Error updating budget:', error);
+    logger.error('Error updating budget', error);
     throw error;
   }
 }
@@ -270,9 +273,9 @@ export async function updateBudget(
 export async function deleteBudget(id: string): Promise<void> {
   try {
     await deleteDoc(doc(db, BUDGETS_COLLECTION, id));
-    console.warn('✅ Budget deleted:', id);
+    logger.warn('Budget deleted:', id);
   } catch (error) {
-    console.error('Error deleting budget:', error);
+    logger.error('Error deleting budget', error);
     throw error;
   }
 }
@@ -306,9 +309,9 @@ export async function clearAllBudgets(userId: string): Promise<void> {
     });
 
     await batch.commit();
-    console.warn('✅ All budgets cleared');
+    logger.warn('All budgets cleared');
   } catch (error) {
-    console.error('Error clearing budgets:', error);
+    logger.error('Error clearing budgets', error);
     throw error;
   }
 }
@@ -397,9 +400,9 @@ export async function loadSampleBudgets(
     });
 
     await batch.commit();
-    console.warn('✅ Sample budgets loaded');
+    logger.warn('Sample budgets loaded');
   } catch (error) {
-    console.error('Error loading sample data:', error);
+    logger.error('Error loading sample data', error);
     throw error;
   }
 }
@@ -446,7 +449,7 @@ function convertFirestoreToBudget(doc: FirestoreBudget): Omit<Budget, 'id'> {
  */
 export async function migrateOldBudgets(userId: string): Promise<{ message: string }> {
   try {
-    console.warn('🔄 Starting budget migration...');
+    logger.warn('Starting budget migration...');
     
     // First, try to query with userId filter (this will fail if composite index isn't ready)
     const userQ = query(
@@ -454,11 +457,11 @@ export async function migrateOldBudgets(userId: string): Promise<{ message: stri
       where('userId', '==', userId)
     );
     const userSnapshot = await getDocs(userQ);
-    console.warn(`✅ Found ${userSnapshot.docs.length} user budgets with proper userId`);
+    logger.warn(`Found ${userSnapshot.docs.length} user budgets with proper userId`);
     
     return { message: `Migration check complete: ${userSnapshot.docs.length} budgets have userId` };
   } catch (error) {
-    console.error('❌ Migration error:', error);
+    logger.error('Migration error', error);
     
     if (error instanceof Error && error.message.includes('permission-denied')) {
       return {

@@ -1,25 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Plus, LayoutList, LayoutGrid, AlertCircle, RefreshCw, Search, X, ArrowUpDown, ArrowUp, ArrowDown, Wallet, Wifi, Clock, Layers, CheckCircle } from 'lucide-react';
 import { cn } from '../utils/cn';
+import { getLogger } from '../utils/logger';
+
+const logger = getLogger('Home');
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useBudget } from '../context/BudgetContext';
+import { usePreferences } from '../context/PreferencesContext';
 import { Budget } from '../types';
-import { Currency } from '../utils/currency';
 import { TranslationKeys } from '../utils/i18n';
 import { getTimeMetrics } from '../utils/time';
 
 interface HomeProps {
-  currency: Currency;
   t: Record<TranslationKeys, string>;
-  viewMode: 'compact' | 'detailed';
-  onViewModeChange: (mode: 'compact' | 'detailed') => void;
   onAddBudgetClick: () => void;
   onEditBudget: (budget: Budget) => void;
 }
 
-export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick, onEditBudget }: HomeProps) {
+export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
+  const { currency, viewMode, onViewModeChange } = usePreferences();
   const { budgets, loading, error, hasPendingWrites, isFromCache, deleteBudget, loadSampleData, updateBudget } = useBudget();
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
   const [sortField, setSortField] = useState<'name' | 'amount' | 'urgency'>('name');
@@ -44,7 +45,7 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
   const hasNoCachedData = budgets.length === 0 && !loading;
   const shouldShowErrorRecovery = error && !dismissedError && (isPermissionError || hasNoCachedData);
 
-  const getSortedBudgets = (budgetsToSort: Budget[]) => {
+  const getSortedBudgets = useCallback((budgetsToSort: Budget[]) => {
     const sorted = [...budgetsToSort];
     const dir = sortDir === 'asc' ? 1 : -1;
     switch (sortField) {
@@ -65,55 +66,74 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
         break;
     }
     return sorted;
-  };
+  }, [sortDir, sortField]);
 
-  const SORT_OPTIONS = [
+  const SORT_OPTIONS = useMemo(() => [
     { key: 'name' as const,    label: t.sortByName,    asc: 'A → Z', desc: 'Z → A' },
     { key: 'amount' as const,  label: t.sortByAmount,  asc: '↑ Low',  desc: '↓ High' },
     { key: 'urgency' as const, label: t.sortByUrgency, asc: '↑ Low',  desc: '↓ High' },
-  ];
+  ], [t.sortByName, t.sortByAmount, t.sortByUrgency]);
 
-  const sortedBudgets = getSortedBudgets(budgets);
+  const sortedBudgets = useMemo(() => getSortedBudgets(budgets), [budgets, getSortedBudgets]);
 
-  const filteredBudgets = searchQuery.trim()
-    ? sortedBudgets.filter(b =>
-        b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.frequency.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : sortedBudgets;
+  const filteredBudgets = useMemo(() =>
+    searchQuery.trim()
+      ? sortedBudgets.filter(b =>
+          b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          b.frequency.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : sortedBudgets,
+    [searchQuery, sortedBudgets]
+  );
 
-  const getBudgetVariance = (b: Budget): number | null => {
+  const getBudgetVariance = useCallback((b: Budget): number | null => {
     const m = getTimeMetrics(b.frequency, b.excludeWeekends);
     const remaining = b.amount - (b.amount * m.percentage) / 100;
     return b.lastKnownBalance !== undefined ? b.lastKnownBalance - remaining : null;
-  };
+  }, []);
 
-  const healthFilteredBudgets = healthFilter === 'all'
-    ? filteredBudgets
-    : filteredBudgets.filter(b => {
-        const v = getBudgetVariance(b);
-        if (v === null) return false;
-        return healthFilter === 'surplus' ? v >= 0 : v < 0;
-      });
+  const healthFilteredBudgets = useMemo(() =>
+    healthFilter === 'all'
+      ? filteredBudgets
+      : filteredBudgets.filter(b => {
+          const v = getBudgetVariance(b);
+          if (v === null) return false;
+          return healthFilter === 'surplus' ? v >= 0 : v < 0;
+        }),
+    [healthFilter, filteredBudgets, getBudgetVariance]
+  );
 
-  const groupedSections = groupByStatus ? {
-    deficit: healthFilteredBudgets.filter(b => { const v = getBudgetVariance(b); return v !== null && v < 0; }),
-    onTrack: healthFilteredBudgets.filter(b => { const v = getBudgetVariance(b); return v === null || v >= 0; }),
-  } : null;
+  const groupedSections = useMemo(() =>
+    groupByStatus ? {
+      deficit: healthFilteredBudgets.filter(b => { const v = getBudgetVariance(b); return v !== null && v < 0; }),
+      onTrack: healthFilteredBudgets.filter(b => { const v = getBudgetVariance(b); return v === null || v >= 0; }),
+    } : null,
+    [groupByStatus, healthFilteredBudgets, getBudgetVariance]
+  );
 
-  const renderCard = (budget: Budget) => (
-    <BudgetCard
-      key={budget.id}
-      budget={budget}
-      currency={currency}
-      t={t}
-      onDelete={(id) => setBudgetToDelete(id)}
-      onEdit={onEditBudget}
-      onUpdateBalance={async (id, balance) =>
-        updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() })
-      }
-      viewMode={viewMode}
-    />
+  const handleUpdateBalance = useCallback(
+    async (id: string, balance: number) => {
+      await updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() });
+    },
+    [updateBudget]
+  );
+
+  const handleDeleteClick = useCallback((id: string) => {
+    setBudgetToDelete(id);
+  }, []);
+
+  const renderCard = useCallback(
+    (budget: Budget) => (
+      <BudgetCard
+        key={budget.id}
+        budget={budget}
+        t={t}
+        onDelete={handleDeleteClick}
+        onEdit={onEditBudget}
+        onUpdateBalance={handleUpdateBalance}
+      />
+    ),
+    [t, onEditBudget, handleDeleteClick, handleUpdateBalance]
   );
 
   return (
@@ -538,7 +558,7 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
               await deleteBudget(budgetToDelete);
               setBudgetToDelete(null);
             } catch (err) {
-              console.error('Failed to delete budget:', err);
+              logger.error('Failed to delete budget', err);
             }
           }
         }}

@@ -15,6 +15,9 @@
 
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { app } from '../db/firebase';
+import { getLogger } from '../utils/logger';
+
+const logger = getLogger('auth');
 
 /**
  * Firebase Auth singleton instance
@@ -87,7 +90,7 @@ export function initAuthObserver(
   onAuthChange: (user: User | null, loading: boolean) => void
 ): void {
   if (authStateUnsubscribe) {
-    console.warn('[Auth] Observer already initialized, skipping duplicate initialization');
+    logger.warn('Observer already initialized, skipping duplicate initialization');
     return;
   }
 
@@ -96,7 +99,7 @@ export function initAuthObserver(
     (user: User | null) => {
       // Called immediately with current auth state (may be null)
       // Then called every time auth state changes
-      console.warn(
+      logger.warn(
         '[Auth] Auth state changed:',
         user ? `${user.email} (${user.uid})` : 'signed out'
       );
@@ -105,11 +108,11 @@ export function initAuthObserver(
     (error) => {
       // Called if onAuthStateChanged encounters an error
       // This is rare but can happen if auth service is disabled
-      console.error('[Auth] Auth observer encountered error:', error);
+      logger.error('Auth observer encountered error', error);
     }
   );
 
-  console.warn('[Auth] Observer initialized');
+  logger.warn('Observer initialized');
 }
 
 /**
@@ -128,7 +131,7 @@ export function cleanupAuthObserver(): void {
   if (authStateUnsubscribe) {
     authStateUnsubscribe();
     authStateUnsubscribe = null;
-    console.warn('[Auth] Observer cleaned up');
+    logger.warn('Observer cleaned up');
   }
 }
 
@@ -187,7 +190,7 @@ export async function getIdToken(forceRefresh: boolean = false): Promise<string 
     const token = await auth.currentUser.getIdToken(forceRefresh);
     return token;
   } catch (error) {
-    console.error('[Auth] Failed to get ID token:', error);
+    logger.error('Failed to get ID token', error);
     return null;
   }
 }

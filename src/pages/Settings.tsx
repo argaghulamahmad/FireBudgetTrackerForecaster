@@ -1,24 +1,21 @@
 import { useRef, useState } from 'react';
 import { User } from 'firebase/auth';
-import { Currency } from '../utils/currency';
-import { Language, TranslationKeys } from '../utils/i18n';
+import { TranslationKeys } from '../utils/i18n';
 import { useBudget } from '../context/BudgetContext';
 import { useToast } from '../context/ToastContext';
+import { usePreferences } from '../context/PreferencesContext';
 import { Globe, DollarSign, Database, Trash2, Download, Upload, FileArchive, LayoutTemplate, LogOut, ChevronRight } from 'lucide-react';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { signOutUser } from '../services/authActions';
 import { exportBudgets, importBudgets } from '../utils/backupUtils';
 import { cn } from '../utils/cn';
+import { getLogger } from '../utils/logger';
+
+const logger = getLogger('Settings');
 
 interface SettingsProps {
-  currency: Currency;
-  language: Language;
-  viewMode: 'compact' | 'detailed';
   user: User;
   t: Record<TranslationKeys, string>;
-  onCurrencyChange: (c: Currency) => void;
-  onLanguageChange: (l: Language) => void;
-  onViewModeChange: (mode: 'compact' | 'detailed') => void;
 }
 
 function SectionLabel({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
@@ -57,7 +54,8 @@ function OptionRow({
   );
 }
 
-export function Settings({ currency, language, viewMode, user, t, onCurrencyChange, onLanguageChange, onViewModeChange }: SettingsProps) {
+export function Settings({ user, t }: SettingsProps) {
+  const { currency, language, viewMode, onCurrencyChange, onLanguageChange, onViewModeChange } = usePreferences();
   const { loadSampleData, clearAllData } = useBudget();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,7 +70,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
       await exportBudgets(user);
       showToast(t.exportSuccess || 'Budget backup downloaded successfully!', 'success');
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed', error);
       showToast(t.exportFailed || 'Failed to export budgets', 'error');
     }
   };
@@ -98,7 +96,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
         'success'
       );
     } catch (error) {
-      console.error('Import failed:', error);
+      logger.error('Import failed', error);
       showToast(t.importFailed || 'Failed to import budgets', 'error');
       setImportFile(null);
     }
@@ -116,7 +114,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
       setIsSignOutModalOpen(false);
     } catch (error) {
       showToast('An unexpected error occurred while signing out', 'error');
-      console.error(error);
+      logger.error('Process import failed', error);
     } finally {
       setIsSigningOut(false);
     }
@@ -256,7 +254,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
             setIsLoadSampleModalOpen(false);
             showToast(t.loadSampleData || 'Sample data loaded successfully', 'success');
           } catch (error) {
-            console.error('Failed to load sample data:', error);
+            logger.error('Failed to load sample data', error);
             showToast(t.loadSampleDataFailed || 'Failed to load sample data', 'error');
           }
         }}
@@ -276,7 +274,7 @@ export function Settings({ currency, language, viewMode, user, t, onCurrencyChan
             setIsClearModalOpen(false);
             showToast(t.clearAllData || 'All data cleared successfully', 'success');
           } catch (error) {
-            console.error('Failed to clear data:', error);
+            logger.error('Failed to clear data', error);
             showToast(t.clearDataFailed || 'Failed to clear data', 'error');
           }
         }}

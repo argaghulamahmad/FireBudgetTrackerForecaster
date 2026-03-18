@@ -12,6 +12,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BudgetCard } from '../../components/BudgetCard';
+import { PreferencesProvider } from '../../context/PreferencesContext';
 import { Budget } from '../../types';
 import { translations } from '../../utils/i18n';
 
@@ -28,18 +29,34 @@ const mockBudget: Budget = {
 
 const mockTranslations = translations.en;
 
+// Helper to wrap component with PreferencesProvider
+const renderWithPreferences = (component: React.ReactElement) => {
+  return render(
+    <PreferencesProvider
+      currency="USD"
+      language="en"
+      viewMode="detailed"
+      onCurrencyChange={vi.fn()}
+      onLanguageChange={vi.fn()}
+      onViewModeChange={vi.fn()}
+    >
+      {component}
+    </PreferencesProvider>
+  );
+};
+
 describe('BudgetCard Component', () => {
   it('should render budget name', () => {
     const mockOnDelete = vi.fn();
     const mockOnEdit = vi.fn();
 
-    render(
+    renderWithPreferences(
       <BudgetCard
         budget={mockBudget}
-        currency="USD"
         t={mockTranslations}
         onDelete={mockOnDelete}
         onEdit={mockOnEdit}
+        onUpdateBalance={vi.fn()}
       />
     );
 
@@ -50,13 +67,13 @@ describe('BudgetCard Component', () => {
     const mockOnDelete = vi.fn();
     const mockOnEdit = vi.fn();
 
-    render(
+    renderWithPreferences(
       <BudgetCard
         budget={mockBudget}
-        currency="USD"
         t={mockTranslations}
         onDelete={mockOnDelete}
         onEdit={mockOnEdit}
+        onUpdateBalance={vi.fn()}
       />
     );
 
@@ -68,13 +85,13 @@ describe('BudgetCard Component', () => {
     const mockOnDelete = vi.fn();
     const mockOnEdit = vi.fn();
 
-    render(
+    renderWithPreferences(
       <BudgetCard
         budget={mockBudget}
-        currency="USD"
         t={mockTranslations}
         onDelete={mockOnDelete}
         onEdit={mockOnEdit}
+        onUpdateBalance={vi.fn()}
       />
     );
 
@@ -90,13 +107,13 @@ describe('BudgetCard Component', () => {
     const mockOnDelete = vi.fn();
     const mockOnEdit = vi.fn();
 
-    render(
+    renderWithPreferences(
       <BudgetCard
         budget={mockBudget}
-        currency="USD"
         t={mockTranslations}
         onDelete={mockOnDelete}
         onEdit={mockOnEdit}
+        onUpdateBalance={vi.fn()}
       />
     );
 
@@ -112,14 +129,22 @@ describe('BudgetCard Component', () => {
     const mockOnEdit = vi.fn();
 
     render(
-      <BudgetCard
-        budget={mockBudget}
+      <PreferencesProvider
         currency="USD"
-        t={mockTranslations}
-        onDelete={mockOnDelete}
-        onEdit={mockOnEdit}
+        language="en"
         viewMode="compact"
-      />
+        onCurrencyChange={vi.fn()}
+        onLanguageChange={vi.fn()}
+        onViewModeChange={vi.fn()}
+      >
+        <BudgetCard
+          budget={mockBudget}
+          t={mockTranslations}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          onUpdateBalance={vi.fn()}
+        />
+      </PreferencesProvider>
     );
 
     // Compact view should have fewer elements

@@ -1,5 +1,9 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { getLogger } from '../utils/logger';
+import { useToast } from '../context/ToastContext';
+
+const logger = getLogger('ConfirmModal');
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -22,6 +26,7 @@ export function ConfirmModal({
   onCancel,
   isDestructive = true
 }: ConfirmModalProps) {
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -32,7 +37,9 @@ export function ConfirmModal({
       await onConfirm();
       onCancel();
     } catch (error) {
-      console.error('Confirmation action failed:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Action failed';
+      logger.error('Confirmation action failed', error);
+      showToast(errorMsg, 'error');
     } finally {
       setIsLoading(false);
     }
