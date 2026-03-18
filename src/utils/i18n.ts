@@ -123,6 +123,10 @@ export const translations = {
     waitingForFirestoreMessage: 'Access permissions are being set up. This usually takes 5–10 minutes.',
     tryAgain: 'Try Again',
     appTitle: 'Budget Tracker Forecaster',
+    ofTotal: 'Of {{amount}} total',
+    vsForecast: 'vs. forecast',
+    surplusVsForecast: 'Surplus vs. forecast',
+    deficitVsForecast: 'Deficit vs. forecast',
   },
   id: {
     home: 'Beranda',
@@ -246,6 +250,10 @@ export const translations = {
     waitingForFirestoreMessage: 'Izin akses sedang diatur. Ini biasanya memakan waktu 5–10 menit.',
     tryAgain: 'Coba Lagi',
     appTitle: 'Pelacak Anggaran Prakiraan',
+    ofTotal: 'Dari total {{amount}}',
+    vsForecast: 'dibanding prakiraan',
+    surplusVsForecast: 'Surplus dibanding prakiraan',
+    deficitVsForecast: 'Defisit dibanding prakiraan',
   }
 };
 

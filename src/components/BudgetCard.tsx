@@ -231,7 +231,7 @@ function BudgetCardComponent({ budget, t, onDelete, onEdit, onUpdateBalance }: B
                   }
                   {isSurplus ? 'Surplus' : 'Deficit'}
                 </span>
-                {' · '}{formatCurrency(Math.abs(variance), currency)} vs. forecast
+                {' · '}{formatCurrency(Math.abs(variance), currency)} {t.vsForecast}
               </p>
             )}
           </div>
@@ -284,7 +284,7 @@ function BudgetCardComponent({ budget, t, onDelete, onEdit, onUpdateBalance }: B
         {formatCurrency(remaining, currency)}
       </p>
       <p className="text-[13px] text-health-secondary mt-1.5">
-        Of <span className="text-health-text font-medium">{formatCurrency(budget.amount, currency)}</span> total
+        {t.ofTotal.replace('{{amount}}', formatCurrency(budget.amount, currency))}
       </p>
 
       {/* Progress bar */}
@@ -430,7 +430,7 @@ function BudgetCardComponent({ budget, t, onDelete, onEdit, onUpdateBalance }: B
                 )}
               </div>
               <p className="text-[11px] text-health-secondary mt-0.5">
-                {isSurplus ? 'Surplus vs. forecast' : 'Deficit vs. forecast'}
+                {isSurplus ? t.surplusVsForecast : t.deficitVsForecast}
                 {budget.lastKnownBalanceAt && (
                   <> · {formatTimeAgo(budget.lastKnownBalanceAt)}</>
                 )}
