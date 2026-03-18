@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, LayoutList, LayoutGrid, AlertCircle, RefreshCw, Search, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, LayoutList, LayoutGrid, AlertCircle, RefreshCw, Search, X, ArrowUpDown, ArrowUp, ArrowDown, Wallet, Wifi, Clock } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
@@ -84,15 +84,16 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
     <div className="px-4 pt-10 pb-28 min-h-screen bg-[#F2F2F7] lg:px-0 lg:pt-0 lg:pb-0">
       {/* Sync / offline banners */}
       {hasPendingWrites && (
-        <div className="mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2">
+        <div className="mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl lg:rounded-none flex items-center gap-2">
           <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
           <span className="text-[13px] text-amber-800">{t.syncing || 'Syncing...'}</span>
         </div>
       )}
 
       {isFromCache && (
-        <div className="mb-3 px-3 py-2.5 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center gap-2">
-          <span className="text-[13px] text-indigo-800">📶 {t.offline || 'Using offline data'}</span>
+        <div className="mb-3 px-3 py-2.5 bg-indigo-50 border border-indigo-200 rounded-2xl lg:rounded-none flex items-center gap-2">
+          <Wifi className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" strokeWidth={2} />
+          <span className="text-[13px] text-indigo-800">{t.offline || 'Using offline data'}</span>
         </div>
       )}
 
@@ -106,7 +107,7 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
             <div className="flex-1">
               {isPermissionError ? (
                 <>
-                  <p className="text-[13px] font-semibold text-health-text mb-1">🔒 Permission Denied</p>
+                  <p className="text-[13px] font-semibold text-health-text mb-1">Permission Denied</p>
                   <p className="text-[12px] text-health-secondary mb-3">
                     Firestore is checking access permissions. This usually resolves in 5–10 minutes after publishing Security Rules.
                   </p>
@@ -117,7 +118,7 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
                 </>
               ) : (
                 <>
-                  <p className="text-[13px] font-semibold text-health-text mb-1">⚠️ Cannot Load Budgets</p>
+                  <p className="text-[13px] font-semibold text-health-text mb-1">Cannot Load Budgets</p>
                   <p className="text-[12px] text-health-secondary mb-3">{error.message}</p>
                 </>
               )}
@@ -144,7 +145,7 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
       )}
 
       {error && !shouldShowErrorRecovery && (
-        <div className="mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2">
+        <div className="mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl lg:rounded-none flex items-center gap-2">
           <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
           <span className="text-[13px] text-amber-800">{error.message}</span>
         </div>
@@ -164,7 +165,10 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
             <p className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mb-1">
               {t.manageSpending}
             </p>
-            <h1 className="font-display text-[34px] font-bold text-health-text leading-tight">{t.budgets}</h1>
+            <div className="flex items-center gap-2.5">
+              <Wallet className="w-8 h-8 text-indigo-600 flex-shrink-0" strokeWidth={2} />
+              <h1 className="font-display text-[34px] font-bold text-health-text leading-tight">Budget Tracker Forecaster</h1>
+            </div>
           </header>
 
           {budgets.length > 0 ? (
@@ -178,7 +182,10 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
                   <p className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mb-1">
                     {t.manageSpending}
                   </p>
-                  <h1 className="font-display text-[28px] font-bold text-health-text leading-tight">{t.budgets}</h1>
+                  <div className="flex items-center gap-2">
+                    <Wallet className="w-7 h-7 text-indigo-600 flex-shrink-0" strokeWidth={2} />
+                    <h1 className="font-display text-[28px] font-bold text-health-text leading-tight">Budget Tracker Forecaster</h1>
+                  </div>
                 </header>
 
                 <SummaryCard budgets={budgets} currency={currency} t={t} viewMode={viewMode} />
@@ -356,7 +363,10 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
                   <div className="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                     <AlertCircle className="w-8 h-8 text-rose-400" />
                   </div>
-                  <h2 className="font-display text-xl font-bold text-health-text mb-2">⏳ Waiting for Firestore</h2>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Clock className="w-5 h-5 text-rose-400 flex-shrink-0" strokeWidth={2} />
+                    <h2 className="font-display text-xl font-bold text-health-text">Waiting for Firestore</h2>
+                  </div>
                   <p className="text-[14px] text-health-secondary mb-8">
                     Access permissions are being set up. This usually takes 5–10 minutes.
                   </p>

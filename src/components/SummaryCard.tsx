@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Budget } from '../types';
-import { Activity, CalendarDays, TrendingDown, Wallet } from 'lucide-react';
+import { Activity, CalendarDays, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { Currency, formatCurrency } from '../utils/currency';
 import { TranslationKeys } from '../utils/i18n';
@@ -63,10 +63,14 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
           <div className="flex items-center gap-2">
             {hasReconciliation && totalVariance !== null && (
               <span className={cn(
-                'text-[10px] font-bold px-2 py-0.5 rounded-full',
+                'inline-flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full',
                 isSurplus ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
               )}>
-                {isSurplus ? '▲' : '▼'} {isSurplus ? '+' : ''}{formatCurrency(totalVariance, currency)}
+                {isSurplus
+                  ? <TrendingUp className="w-2.5 h-2.5" strokeWidth={2} />
+                  : <TrendingDown className="w-2.5 h-2.5" strokeWidth={2} />
+                }
+                {isSurplus ? '+' : ''}{formatCurrency(totalVariance, currency)}
               </span>
             )}
             <p className="font-display text-xl font-bold text-health-text">
@@ -86,7 +90,7 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
 
   // ── Detailed view ──────────────────────────────────────────────
   return (
-    <div className="bg-white rounded-3xl p-5 shadow-sm border border-health-separator mb-5">
+    <div className="bg-white rounded-[32px] p-5 shadow-sm border border-health-separator mb-5">
 
       {/* Header row */}
       <div className="flex items-center justify-between mb-5">
@@ -95,12 +99,16 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
         </span>
         {hasReconciliation && totalVariance !== null ? (
           <span className={cn(
-            'text-[11px] font-bold px-3 py-1 rounded-full',
+            'inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full',
             isSurplus
               ? 'bg-emerald-100 text-emerald-700'
               : 'bg-rose-100 text-rose-600'
           )}>
-            {isSurplus ? '▲ Surplus' : '▼ Deficit'}
+            {isSurplus
+              ? <TrendingUp className="w-3 h-3" strokeWidth={2} />
+              : <TrendingDown className="w-3 h-3" strokeWidth={2} />
+            }
+            {isSurplus ? 'Surplus' : 'Deficit'}
           </span>
         ) : (
           <div className="bg-zinc-100 p-1.5 rounded-full">

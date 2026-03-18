@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { Home as HomeIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Home as HomeIcon, Settings as SettingsIcon, Wallet } from 'lucide-react';
 import { cn } from './utils/cn';
 import { initAuthObserver, cleanupAuthObserver } from './services/auth';
 import { useBudgets } from './hooks/useBudgets';
@@ -160,7 +160,7 @@ export default function App() {
         {/* Desktop side nav rail — hidden on mobile */}
         <nav className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-[72px] lg:z-40 bg-white/80 backdrop-blur-xl border-r border-health-separator items-center pt-6 pb-8 gap-1">
           <div className="w-9 h-9 bg-indigo-600 rounded-[14px] flex items-center justify-center mb-5 flex-shrink-0 shadow-sm shadow-indigo-200 select-none">
-            <span className="text-white font-bold text-sm">F</span>
+            <Wallet className="w-5 h-5 text-white" strokeWidth={2} />
           </div>
           <button
             type="button"

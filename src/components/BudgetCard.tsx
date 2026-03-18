@@ -1,6 +1,6 @@
 import { memo, useState, useRef, useEffect } from 'react';
 import { Budget } from '../types';
-import { Trash2, Clock, Pencil, CalendarDays, Plus, Check, X, Wallet } from 'lucide-react';
+import { Trash2, Clock, Pencil, CalendarDays, Plus, Check, X, Wallet, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { Currency, formatCurrency, getCurrencySymbol, formatCurrencyInput, parseCurrencyInput } from '../utils/currency';
 import { TranslationKeys } from '../utils/i18n';
@@ -223,7 +223,14 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
                 'text-[11px] font-medium mt-2',
                 isSurplus ? 'text-emerald-600' : 'text-rose-500'
               )}>
-                {isSurplus ? '▲ Surplus' : '▼ Deficit'} · {formatCurrency(Math.abs(variance), currency)} vs. forecast
+                <span className="inline-flex items-center gap-0.5">
+                  {isSurplus
+                    ? <TrendingUp className="w-3 h-3" strokeWidth={2} />
+                    : <TrendingDown className="w-3 h-3" strokeWidth={2} />
+                  }
+                  {isSurplus ? 'Surplus' : 'Deficit'}
+                </span>
+                {' · '}{formatCurrency(Math.abs(variance), currency)} vs. forecast
               </p>
             )}
           </div>
@@ -233,7 +240,7 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
   }
 
   return (
-    <div className="bg-white rounded-3xl p-5 shadow-sm border border-health-separator mb-4 group">
+    <div className="bg-white rounded-[32px] p-5 shadow-sm border border-health-separator mb-4 group">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
@@ -391,7 +398,13 @@ function BudgetCardComponent({ budget, currency, t, onDelete, onEdit, onUpdateBa
                       ? 'bg-emerald-50 text-emerald-700'
                       : 'bg-rose-50 text-rose-600'
                   )}>
-                    {isSurplus ? '▲ +' : '▼ '}{formatCurrency(Math.abs(variance), currency)}
+                    <span className="inline-flex items-center gap-0.5">
+                      {isSurplus
+                        ? <TrendingUp className="w-2.5 h-2.5" strokeWidth={2} />
+                        : <TrendingDown className="w-2.5 h-2.5" strokeWidth={2} />
+                      }
+                      {isSurplus ? '+' : ''}{formatCurrency(Math.abs(variance), currency)}
+                    </span>
                   </span>
                 )}
               </div>
