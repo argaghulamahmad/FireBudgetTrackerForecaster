@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, LayoutList, LayoutGrid, AlertCircle, RefreshCw, Search, X, ArrowUpDown, ArrowUp, ArrowDown, Wallet, Wifi, Clock } from 'lucide-react';
+import { Plus, LayoutList, LayoutGrid, AlertCircle, RefreshCw, Search, X, ArrowUpDown, ArrowUp, ArrowDown, Wallet, Wifi, Clock, Layers, CheckCircle } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { SummaryCard } from '../components/SummaryCard';
 import { BudgetCard } from '../components/BudgetCard';
@@ -29,6 +29,8 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
   const [dismissedError, setDismissedError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [healthFilter, setHealthFilter] = useState<'all' | 'surplus' | 'deficit'>('all');
+  const [groupByStatus, setGroupByStatus] = useState(false);
 
   useEffect(() => {
     setDismissedError(false);
@@ -79,6 +81,40 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
         b.frequency.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : sortedBudgets;
+
+  const getBudgetVariance = (b: Budget): number | null => {
+    const m = getTimeMetrics(b.frequency, b.excludeWeekends);
+    const remaining = b.amount - (b.amount * m.percentage) / 100;
+    return b.lastKnownBalance !== undefined ? b.lastKnownBalance - remaining : null;
+  };
+
+  const healthFilteredBudgets = healthFilter === 'all'
+    ? filteredBudgets
+    : filteredBudgets.filter(b => {
+        const v = getBudgetVariance(b);
+        if (v === null) return false;
+        return healthFilter === 'surplus' ? v >= 0 : v < 0;
+      });
+
+  const groupedSections = groupByStatus ? {
+    deficit: healthFilteredBudgets.filter(b => { const v = getBudgetVariance(b); return v !== null && v < 0; }),
+    onTrack: healthFilteredBudgets.filter(b => { const v = getBudgetVariance(b); return v === null || v >= 0; }),
+  } : null;
+
+  const renderCard = (budget: Budget) => (
+    <BudgetCard
+      key={budget.id}
+      budget={budget}
+      currency={currency}
+      t={t}
+      onDelete={(id) => setBudgetToDelete(id)}
+      onEdit={onEditBudget}
+      onUpdateBalance={async (id, balance) =>
+        updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() })
+      }
+      viewMode={viewMode}
+    />
+  );
 
   return (
     <div className="px-4 pt-10 pb-28 min-h-screen bg-[#F2F2F7] lg:px-0 lg:pt-0 lg:pb-0">
@@ -233,9 +269,42 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
 
                   {/* Controls */}
                   <div className="flex items-center gap-2 mb-3 mt-4 lg:mt-0 lg:mb-0">
-                    <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mr-auto lg:hidden">
-                      {t.yourCategories}
-                    </span>
+                    {/* Health filter pills */}
+                    <div className="flex items-center gap-1 mr-auto">
+                      {(['all', 'surplus', 'deficit'] as const).map(f => (
+                        <button
+                          key={f}
+                          type="button"
+                          onClick={() => setHealthFilter(f)}
+                          className={cn(
+                            'px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors',
+                            healthFilter === f
+                              ? f === 'surplus'
+                                ? 'bg-emerald-600 text-white border-transparent'
+                                : f === 'deficit'
+                                ? 'bg-rose-500 text-white border-transparent'
+                                : 'bg-indigo-600 text-white border-transparent'
+                              : 'bg-white text-health-secondary border-health-separator hover:border-indigo-200 hover:text-health-text'
+                          )}
+                        >
+                          {f === 'all' ? 'All' : f === 'surplus' ? 'Surplus' : 'Deficit'}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Group toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setGroupByStatus(v => !v)}
+                      className={cn(
+                        'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border transition-colors',
+                        groupByStatus
+                          ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                          : 'bg-white text-health-secondary border-health-separator hover:border-indigo-200'
+                      )}
+                    >
+                      <Layers className="w-3 h-3" strokeWidth={2} />
+                      Group
+                    </button>
                     {/* Sort dropdown */}
                     <div className="relative" ref={sortMenuRef}>
                       <button
@@ -327,7 +396,7 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
 
               {/* ─── Budget Cards ─── */}
               <main className="lg:px-8 lg:py-6">
-                {filteredBudgets.length === 0 ? (
+                {healthFilteredBudgets.length === 0 ? (
                   <div className="text-center py-16 px-4">
                     <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                       <Search className="w-7 h-7 text-slate-300" />
@@ -335,22 +404,49 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
                     <p className="text-[16px] font-semibold text-health-text mb-1">No Budgets Found</p>
                     <p className="text-[13px] text-health-secondary">Try a different name or frequency.</p>
                   </div>
+                ) : groupedSections ? (
+                  <div className="space-y-6">
+                    {/* Attention Required — Deficit */}
+                    <section>
+                      <div className="flex items-center gap-2 mb-3 px-1">
+                        <div className="w-2 h-2 rounded-full bg-rose-500 flex-shrink-0" />
+                        <h3 className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">Attention Required</h3>
+                        <span className="text-[10px] font-semibold text-health-tertiary ml-auto">{groupedSections.deficit.length}</span>
+                      </div>
+                      {groupedSections.deficit.length > 0 ? (
+                        <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
+                          {groupedSections.deficit.map(budget => renderCard(budget))}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2.5 py-4 px-5 bg-white rounded-[32px] border border-health-separator shadow-sm">
+                          <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" strokeWidth={2} />
+                          <p className="text-[13px] text-health-secondary font-medium">All budgets are healthy!</p>
+                        </div>
+                      )}
+                    </section>
+
+                    {/* On Track — Surplus */}
+                    <section>
+                      <div className="flex items-center gap-2 mb-3 px-1">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                        <h3 className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">On Track</h3>
+                        <span className="text-[10px] font-semibold text-health-tertiary ml-auto">{groupedSections.onTrack.length}</span>
+                      </div>
+                      {groupedSections.onTrack.length > 0 ? (
+                        <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
+                          {groupedSections.onTrack.map(budget => renderCard(budget))}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2.5 py-4 px-5 bg-white rounded-[32px] border border-health-separator shadow-sm">
+                          <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" strokeWidth={2} />
+                          <p className="text-[13px] text-health-secondary font-medium">All budgets are healthy!</p>
+                        </div>
+                      )}
+                    </section>
+                  </div>
                 ) : (
                   <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
-                    {filteredBudgets.map(budget => (
-                      <BudgetCard
-                        key={budget.id}
-                        budget={budget}
-                        currency={currency}
-                        t={t}
-                        onDelete={(id) => setBudgetToDelete(id)}
-                        onEdit={onEditBudget}
-                        onUpdateBalance={async (id, balance) =>
-                          updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() })
-                        }
-                        viewMode={viewMode}
-                      />
-                    ))}
+                    {healthFilteredBudgets.map(budget => renderCard(budget))}
                   </div>
                 )}
               </main>
