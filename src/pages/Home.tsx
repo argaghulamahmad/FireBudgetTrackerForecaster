@@ -252,7 +252,7 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
             </p>
             <div className="flex items-center gap-2.5">
               <Wallet className="w-8 h-8 text-indigo-600 flex-shrink-0" strokeWidth={2} />
-              <h1 className="font-display text-[34px] font-bold text-health-text leading-tight">Budget Tracker Forecaster</h1>
+              <h1 className="font-display text-[34px] font-bold text-health-text leading-tight">{t.appTitle}</h1>
             </div>
           </header>
 
@@ -269,7 +269,7 @@ export function Home({ t, onAddBudgetClick, onEditBudget }: HomeProps) {
                   </p>
                   <div className="flex items-center gap-2">
                     <Wallet className="w-7 h-7 text-indigo-600 flex-shrink-0" strokeWidth={2} />
-                    <h1 className="font-display text-[28px] font-bold text-health-text leading-tight">Budget Tracker Forecaster</h1>
+                    <h1 className="font-display text-[28px] font-bold text-health-text leading-tight">{t.appTitle}</h1>
                   </div>
                 </header>
 

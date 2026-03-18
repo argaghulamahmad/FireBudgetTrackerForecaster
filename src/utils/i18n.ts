@@ -122,6 +122,7 @@ export const translations = {
     waitingForFirestore: 'Waiting for Firestore',
     waitingForFirestoreMessage: 'Access permissions are being set up. This usually takes 5–10 minutes.',
     tryAgain: 'Try Again',
+    appTitle: 'Budget Tracker Forecaster',
   },
   id: {
     home: 'Beranda',
@@ -244,6 +245,7 @@ export const translations = {
     waitingForFirestore: 'Menunggu Firestore',
     waitingForFirestoreMessage: 'Izin akses sedang diatur. Ini biasanya memakan waktu 5–10 menit.',
     tryAgain: 'Coba Lagi',
+    appTitle: 'Pelacak Anggaran Prakiraan',
   }
 };
 
