@@ -15,7 +15,7 @@ interface SummaryCardProps {
 
 function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: SummaryCardProps) {
   // ── Memoized calculations ──────────────────────────────────────
-  const { totalAmount, totalIdealSpent, totalDailyAllowance, totalForecasted, percentage } = useMemo(() => {
+  const { totalDailyAllowance, totalForecasted, percentage } = useMemo(() => {
     let totalAmount = 0;
     let totalIdealSpent = 0;
     let totalDailyAllowance = 0;
@@ -32,7 +32,7 @@ function SummaryCardComponent({ budgets, currency, t, viewMode = 'detailed' }: S
     const totalForecasted = totalAmount - totalIdealSpent;
     const percentage = totalAmount > 0 ? (totalIdealSpent / totalAmount) * 100 : 0;
 
-    return { totalAmount, totalIdealSpent, totalDailyAllowance, totalForecasted, percentage };
+    return { totalDailyAllowance, totalForecasted, percentage };
   }, [budgets]);
 
   // ── Reconciliation calculations ────────────────────────────────
