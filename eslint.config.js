@@ -4,7 +4,7 @@ import typescriptEslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: ['dist', 'node_modules', 'build', '.vite', 'coverage']
+    ignores: ['dist', 'dev-dist', 'node_modules', 'build', '.vite', 'coverage']
   },
   js.configs.recommended,
   ...typescriptEslint.configs.recommended,

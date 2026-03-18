@@ -13,7 +13,7 @@ interface PWAUpdateBannerProps {
 export function PWAUpdateBanner({ t }: PWAUpdateBannerProps) {
   const { offlineReady, needRefresh, updateSW, dismissOffline } = usePWA();
   const { showToast } = useToast();
-  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   // Show offline ready notification once
   useEffect(() => {
@@ -23,24 +23,24 @@ export function PWAUpdateBanner({ t }: PWAUpdateBannerProps) {
     }
   }, [offlineReady, t, showToast, dismissOffline]);
 
-  // Show update banner when new SW is available
+  // Reset dismissed state when new update is available
   useEffect(() => {
     if (needRefresh) {
-      setShowUpdateBanner(true);
+      setDismissed(false);
     }
   }, [needRefresh]);
 
   const handleUpdate = () => {
     // updateSW handles the SW skip-waiting and page reload internally
-    // Don't hide banner immediately - let the reload happen
     updateSW(true);
   };
 
   const handleDismiss = () => {
-    setShowUpdateBanner(false);
+    setDismissed(true);
   };
 
-  if (!showUpdateBanner) {
+  // Show banner only if update is available AND not dismissed
+  if (!needRefresh || dismissed) {
     return null;
   }
 

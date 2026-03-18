@@ -13,7 +13,6 @@ import { BudgetProvider } from './context/BudgetContext';
 import { ToastProvider } from './context/ToastContext';
 import { AddBudgetModal } from './components/AddBudgetModal';
 import { ToastContainer } from './components/ToastContainer';
-import { PWAUpdateBanner } from './components/PWAUpdateBanner';
 import { BottomNav } from './components/BottomNav';
 import { Home } from './pages/Home';
 import { Settings } from './pages/Settings';
@@ -242,7 +241,6 @@ export default function App() {
       </div>
       </BudgetProvider>
       )}
-      <PWAUpdateBanner t={t} />
       <ToastContainer />
     </ToastProvider>
   );
