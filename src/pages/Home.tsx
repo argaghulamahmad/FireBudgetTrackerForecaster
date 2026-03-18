@@ -81,7 +81,7 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
     : sortedBudgets;
 
   return (
-    <div className="px-4 pt-10 pb-28 min-h-screen bg-health-bg">
+    <div className="px-4 pt-10 pb-28 min-h-screen bg-[#F2F2F7] lg:px-0 lg:pt-0 lg:pb-0">
       {/* Sync / offline banners */}
       {hasPendingWrites && (
         <div className="mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2">
@@ -159,8 +159,8 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
         </div>
       ) : (
         <>
-          {/* Page header */}
-          <header className="mb-6">
+          {/* Page header — mobile only; desktop version lives inside the sidebar */}
+          <header className="mb-6 lg:hidden">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mb-1">
               {t.manageSpending}
             </p>
@@ -168,172 +168,184 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
           </header>
 
           {budgets.length > 0 ? (
-            <>
-              <SummaryCard budgets={budgets} currency={currency} t={t} viewMode={viewMode} />
+            <div className="lg:flex lg:min-h-screen">
 
-              {/* Search bar */}
-              <div className="relative flex items-center gap-2 mt-4 mb-2">
-                <div className={cn(
-                  'flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full transition-all',
-                  'bg-slate-200/50 border border-transparent',
-                  searchQuery && 'bg-white border-health-separator shadow-sm'
-                )}>
-                  <Search className="w-4 h-4 text-health-tertiary flex-shrink-0" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search budgets…"
-                    className="flex-1 bg-transparent text-[14px] text-health-text placeholder:text-health-tertiary outline-none"
-                  />
+              {/* ─── Left Sidebar ─── */}
+              <aside className="lg:w-[300px] lg:min-w-[300px] lg:sticky lg:top-0 lg:self-start lg:max-h-screen lg:overflow-y-auto lg:border-r lg:border-health-separator/50 lg:bg-white/40 lg:backdrop-blur-sm lg:py-8 lg:px-6">
+
+                {/* Desktop heading — hidden on mobile (mobile header is above the layout split) */}
+                <header className="hidden lg:block mb-6">
+                  <p className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary mb-1">
+                    {t.manageSpending}
+                  </p>
+                  <h1 className="font-display text-[28px] font-bold text-health-text leading-tight">{t.budgets}</h1>
+                </header>
+
+                <SummaryCard budgets={budgets} currency={currency} t={t} viewMode={viewMode} />
+
+                {/* Search bar */}
+                <div className="relative flex items-center gap-2 mt-4 mb-2">
+                  <div className={cn(
+                    'flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full transition-all',
+                    'bg-slate-200/50 border border-transparent',
+                    searchQuery && 'bg-white border-health-separator shadow-sm'
+                  )}>
+                    <Search className="w-4 h-4 text-health-tertiary flex-shrink-0" />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="Search budgets…"
+                      className="flex-1 bg-transparent text-[14px] text-health-text placeholder:text-health-tertiary outline-none"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        aria-label="Clear search"
+                        className="w-4 h-4 flex items-center justify-center rounded-full bg-health-tertiary/30 flex-shrink-0"
+                      >
+                        <X className="w-2.5 h-2.5 text-health-secondary" />
+                      </button>
+                    )}
+                  </div>
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      aria-label="Clear search"
-                      className="w-4 h-4 flex items-center justify-center rounded-full bg-health-tertiary/30 flex-shrink-0"
+                      className="text-[13px] font-medium text-indigo-600 flex-shrink-0"
                     >
-                      <X className="w-2.5 h-2.5 text-health-secondary" />
+                      Cancel
                     </button>
                   )}
                 </div>
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="text-[13px] font-medium text-indigo-600 flex-shrink-0"
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
 
-              {/* Section header with controls */}
-              <div className="flex justify-between items-center mb-3 mt-2">
-                <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">
-                  {t.yourCategories}
-                </span>
-                <div className="flex items-center gap-2">
-                  {/* Sort dropdown */}
-                  <div className="relative" ref={sortMenuRef}>
-                    <button
-                      type="button"
-                      onClick={() => setShowSortMenu(v => !v)}
-                      className={cn(
-                        'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border transition-colors',
-                        showSortMenu
-                          ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
-                          : 'bg-white text-health-secondary border-health-separator hover:border-indigo-200'
-                      )}
-                    >
-                      <ArrowUpDown className="w-3 h-3" />
-                      {SORT_OPTIONS.find(o => o.key === sortField)?.label}
-                      {sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                    </button>
-                    {showSortMenu && (
-                      <>
-                        {/* Backdrop */}
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setShowSortMenu(false)}
-                        />
-                        <div className="absolute top-full right-0 mt-1.5 bg-white rounded-2xl border border-health-separator shadow-xl z-20 overflow-hidden w-56">
-                          {SORT_OPTIONS.map((opt, i) => (
-                            <div
-                              key={opt.key}
-                              className={cn(
-                                'flex items-center justify-between px-4 py-2.5',
-                                i < SORT_OPTIONS.length - 1 && 'border-b border-health-separator/60'
-                              )}
-                            >
-                              <span className={cn(
-                                'text-[13px] font-medium',
-                                sortField === opt.key ? 'text-indigo-600 font-semibold' : 'text-health-text'
-                              )}>
-                                {opt.label}
-                              </span>
-                              <div className="flex items-center gap-1">
-                                {(['asc', 'desc'] as const).map(dir => (
-                                  <button
-                                    key={dir}
-                                    type="button"
-                                    onClick={() => { setSortField(opt.key); setSortDir(dir); setShowSortMenu(false); }}
-                                    className={cn(
-                                      'px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors',
-                                      sortField === opt.key && sortDir === dir
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'bg-health-bg text-health-secondary hover:bg-indigo-50 hover:text-indigo-600'
-                                    )}
-                                  >
-                                    {dir === 'asc' ? opt.asc : opt.desc}
-                                  </button>
-                                ))}
+                {/* Section header with controls */}
+                <div className="flex justify-between items-center mb-3 mt-4">
+                  <span className="text-[11px] font-semibold tracking-widest uppercase text-health-secondary">
+                    {t.yourCategories}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {/* Sort dropdown */}
+                    <div className="relative" ref={sortMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowSortMenu(v => !v)}
+                        className={cn(
+                          'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border transition-colors',
+                          showSortMenu
+                            ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                            : 'bg-white text-health-secondary border-health-separator hover:border-indigo-200'
+                        )}
+                      >
+                        <ArrowUpDown className="w-3 h-3" />
+                        {SORT_OPTIONS.find(o => o.key === sortField)?.label}
+                        {sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                      </button>
+                      {showSortMenu && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
+                          <div className="absolute top-full right-0 mt-1.5 bg-white rounded-2xl border border-health-separator shadow-xl z-20 overflow-hidden w-56">
+                            {SORT_OPTIONS.map((opt, i) => (
+                              <div
+                                key={opt.key}
+                                className={cn(
+                                  'flex items-center justify-between px-4 py-2.5',
+                                  i < SORT_OPTIONS.length - 1 && 'border-b border-health-separator/60'
+                                )}
+                              >
+                                <span className={cn(
+                                  'text-[13px] font-medium',
+                                  sortField === opt.key ? 'text-indigo-600 font-semibold' : 'text-health-text'
+                                )}>
+                                  {opt.label}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  {(['asc', 'desc'] as const).map(dir => (
+                                    <button
+                                      key={dir}
+                                      type="button"
+                                      onClick={() => { setSortField(opt.key); setSortDir(dir); setShowSortMenu(false); }}
+                                      className={cn(
+                                        'px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors',
+                                        sortField === opt.key && sortDir === dir
+                                          ? 'bg-indigo-600 text-white'
+                                          : 'bg-health-bg text-health-secondary hover:bg-indigo-50 hover:text-indigo-600'
+                                      )}
+                                    >
+                                      {dir === 'asc' ? opt.asc : opt.desc}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
 
-                  {/* View toggle */}
-                  <div className="flex bg-white border border-health-separator rounded-xl p-0.5">
-                    <button
-                      type="button"
-                      onClick={() => onViewModeChange('detailed')}
-                      aria-label={t.detailedView}
-                      className={`p-1.5 rounded-lg transition-all ${
-                        viewMode === 'detailed'
-                          ? 'bg-indigo-600 text-white shadow-sm'
-                          : 'text-health-tertiary hover:text-health-secondary'
-                      }`}
-                    >
-                      <LayoutGrid className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onViewModeChange('compact')}
-                      aria-label={t.compactView}
-                      className={`p-1.5 rounded-lg transition-all ${
-                        viewMode === 'compact'
-                          ? 'bg-indigo-600 text-white shadow-sm'
-                          : 'text-health-tertiary hover:text-health-secondary'
-                      }`}
-                    >
-                      <LayoutList className="w-3.5 h-3.5" />
-                    </button>
+                    {/* View toggle */}
+                    <div className="flex bg-white border border-health-separator rounded-xl p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => onViewModeChange('detailed')}
+                        aria-label={t.detailedView}
+                        className={`p-1.5 rounded-lg transition-all ${
+                          viewMode === 'detailed'
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'text-health-tertiary hover:text-health-secondary'
+                        }`}
+                      >
+                        <LayoutGrid className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onViewModeChange('compact')}
+                        aria-label={t.compactView}
+                        className={`p-1.5 rounded-lg transition-all ${
+                          viewMode === 'compact'
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'text-health-tertiary hover:text-health-secondary'
+                        }`}
+                      >
+                        <LayoutList className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </aside>
 
-              {filteredBudgets.length === 0 ? (
-                <div className="text-center py-16 px-4">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                    <Search className="w-7 h-7 text-slate-300" />
+              {/* ─── Main Content ─── */}
+              <main className="flex-1 lg:p-8 lg:overflow-y-auto">
+                {filteredBudgets.length === 0 ? (
+                  <div className="text-center py-16 px-4">
+                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-7 h-7 text-slate-300" />
+                    </div>
+                    <p className="text-[16px] font-semibold text-health-text mb-1">No Budgets Found</p>
+                    <p className="text-[13px] text-health-secondary">Try a different name or frequency.</p>
                   </div>
-                  <p className="text-[16px] font-semibold text-health-text mb-1">No Budgets Found</p>
-                  <p className="text-[13px] text-health-secondary">
-                    Try a different name or frequency.
-                  </p>
-                </div>
-              ) : (
-                filteredBudgets.map(budget => (
-                  <BudgetCard
-                    key={budget.id}
-                    budget={budget}
-                    currency={currency}
-                    t={t}
-                    onDelete={(id) => setBudgetToDelete(id)}
-                    onEdit={onEditBudget}
-                    onUpdateBalance={async (id, balance) =>
-                      updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() })
-                    }
-                    viewMode={viewMode}
-                  />
-                ))
-              )}
-            </>
+                ) : (
+                  <div className="lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4">
+                    {filteredBudgets.map(budget => (
+                      <BudgetCard
+                        key={budget.id}
+                        budget={budget}
+                        currency={currency}
+                        t={t}
+                        onDelete={(id) => setBudgetToDelete(id)}
+                        onEdit={onEditBudget}
+                        onUpdateBalance={async (id, balance) =>
+                          updateBudget(id, { lastKnownBalance: balance, lastKnownBalanceAt: Date.now() })
+                        }
+                        viewMode={viewMode}
+                      />
+                    ))}
+                  </div>
+                )}
+              </main>
+            </div>
           ) : (
             /* Empty state */
             <div className="text-center py-16 px-4">
@@ -398,7 +410,7 @@ export function Home({ currency, t, viewMode, onViewModeChange, onAddBudgetClick
               type="button"
               onClick={onAddBudgetClick}
               aria-label={t.newBudget}
-              className="fixed bottom-24 right-5 w-14 h-14 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all z-40"
+              className="fixed bottom-24 lg:bottom-8 right-5 w-14 h-14 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all z-40"
             >
               <Plus className="w-6 h-6" />
             </button>
