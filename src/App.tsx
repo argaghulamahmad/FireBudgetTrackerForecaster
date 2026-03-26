@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { User } from 'firebase/auth';
 import { Home as HomeIcon, Settings as SettingsIcon, Wallet } from 'lucide-react';
 import { cn } from './utils/cn';
@@ -15,12 +15,29 @@ import { PreferencesProvider } from './context/PreferencesContext';
 import { AddBudgetModal } from './components/AddBudgetModal';
 import { ToastContainer } from './components/ToastContainer';
 import { BottomNav } from './components/BottomNav';
-import { Home } from './pages/Home';
-import { Settings } from './pages/Settings';
+import { ChunkErrorBoundary } from './components/ChunkErrorBoundary';
 import { Login } from './pages/Login';
 import { Currency } from './utils/currency';
 import { Language, translations } from './utils/i18n';
 import { Budget } from './types';
+
+// Lazy-loaded pages — only fetched when needed
+const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
+const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
+
+/**
+ * Page loading fallback — shown while lazy page chunks load
+ */
+function PageLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="w-10 h-10 rounded-full border-2 border-health-separator border-t-indigo-600 animate-spin mx-auto mb-3" />
+        <p className="text-health-secondary text-[12px]">Loading page...</p>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   // ==================== Firebase Auth State ====================
@@ -219,24 +236,28 @@ export default function App() {
 
               {/* Content area */}
               <div className="min-h-screen max-w-[640px] mx-auto lg:max-w-none lg:ml-[72px] bg-health-bg relative text-health-text selection:bg-indigo-100 overflow-x-hidden">
-                {activeTab === 'home' ? (
-                  <Home
-                    t={t}
-                    onAddBudgetClick={() => {
-                      setBudgetToEdit(null);
-                      setIsAddBudgetOpen(true);
-                    }}
-                    onEditBudget={(budget) => {
-                      setBudgetToEdit(budget);
-                      setIsAddBudgetOpen(true);
-                    }}
-                  />
-                ) : (
-                  <Settings
-                    t={t}
-                    user={user}
-                  />
-                )}
+                <ChunkErrorBoundary>
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    {activeTab === 'home' ? (
+                      <Home
+                        t={t}
+                        onAddBudgetClick={() => {
+                          setBudgetToEdit(null);
+                          setIsAddBudgetOpen(true);
+                        }}
+                        onEditBudget={(budget) => {
+                          setBudgetToEdit(budget);
+                          setIsAddBudgetOpen(true);
+                        }}
+                      />
+                    ) : (
+                      <Settings
+                        t={t}
+                        user={user}
+                      />
+                    )}
+                  </Suspense>
+                </ChunkErrorBoundary>
 
                 {/* Bottom nav — mobile only */}
                 <div className="lg:hidden">

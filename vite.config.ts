@@ -78,5 +78,46 @@ export default defineConfig(({mode}) => {
       hmr: process.env.DISABLE_HMR !== 'true',
     },
     sourceMap: false,
+    build: {
+      // Suppress chunk size warning for vendor bundles (expected to be large)
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            // Firebase Firestore only loaded after authentication
+            if (id.includes('node_modules/firebase/firestore')) {
+              return 'firestore-chunk';
+            }
+
+            // Settings page — lazy loaded on-demand
+            if (id.includes('src/pages/Settings')) {
+              return 'pages-settings';
+            }
+
+            // Home page — lazy loaded on-demand (for deep-link support)
+            if (id.includes('src/pages/Home')) {
+              return 'pages-home';
+            }
+
+            // Vendor bundles — stable, cacheable
+            if (id.includes('node_modules/firebase/app')) {
+              return 'firebase-auth';
+            }
+
+            if (id.includes('node_modules/tailwindcss') || id.includes('node_modules/@tailwindcss')) {
+              return 'vendor-css';
+            }
+
+            if (id.includes('node_modules/lucide-react')) {
+              return 'vendor-icons';
+            }
+
+            if (id.includes('node_modules/')) {
+              return 'vendor';
+            }
+          },
+        },
+      },
+    },
   };
 });

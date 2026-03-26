@@ -14,7 +14,7 @@
  */
 
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import { app } from '../db/firebase';
+import { app } from '../db/firebase-auth';
 import { getLogger } from '../utils/logger';
 
 const logger = getLogger('auth');
